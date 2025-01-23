@@ -1,0 +1,38 @@
+# Halo 1 Training Mode Resources
+
+This repository is for Halo 1 multiplayer level designers. Included are links to tools and instructions for optimizing spawn point placement in Blender, as well as in-game scenery tags for spawn marker and randoms geometry.
+
+## Requirements
+
+The instructions and processes described in this writeup have been tested in a Windows environment, using the H1EK (included in the Master Chief Collection Steam release). The process for generating "randoms" geometry is only available to Blender users (requires a custom Blender add-on). The process for placing spawn marker scenery in the Scenario file requires the use of a Windows batch script, as well as a specific outdated version of [Invader](https://github.com/SnowyMouse/invader) (compatible version is included in ). There are NO PLANS to support Mac/Linux users, 3ds Max users, or users still creating content with the original HEK (released for Custom Edition). The repository and associated tools are offered as-is, as development tools for advanced users, and may never improve or be updated for compatibility with newer versions of Blender, Invader, or the H1EK.
+
+## What is Training Mode?
+
+Originally released with Halo 1: NHE (https://halo1nhe.com/), Training Mode was developed with the intention of easing the burden of learning new maps for competitive players. Since the game's competitive community predominantly plays on original Xbox in a LAN setting, players typically prefer to compete on maps they already know, mostly due to time constraints at LAN events. Training Mode is designed to be used in a real gameplay scenario, allowing players to predict enemy spawns, manipulate teammate spawns, and more in real-time.
+
+## Training Mode Features
+
+1) Audio Timer: Cortana counts down to each minute, announcing upcoming item spawns depending on the interval. NOTE: this is not exclusive to Training Mode, but is always included in with Training Mode. The audio timer typically included in NHE/Pro Edition maps (non-Training Mode) is a generic variant that does not announce which items are upcoming (simple countdown timer). 
+
+2) Spawn Markers: a custom spawn marker scenery is placed at each spawn point. The scenery object is designed to be as non-intrusive as possible during gameplay scenarios, and has negligible (if any) impact on performance. The spawn marker scenery, as well as instructions for how to automate their placements, is described in the Placing Spawn Markers section below.
+
+3) Randoms Geometry: this custom scenery object, which is generated based on spawn point coordinates from a scenario imported into Blender via the [Halo Asset Blender Development Toolset](https://github.com/General-101/Halo-Asset-Blender-Development-Toolset), consists of a thin layer of geometry with a transparent shader applied. This geometry covers areas in the map which result in a "random spawn".
+
+For more information about Halo 1's spawn system, refer to the excellent [Halo Spawns website](https://www.halospawns.com/) (created by Mintograde).
+
+# How to Use this Repository
+
+First, download and place the spawn marker and randoms tags from the \tags\ folder. If you copy the whole \tags\ folder directly into your local tags folder, the files will be placed as follows: 
+
+> scenery\spawn_marker_nhe\overflow_spawn_marker.gbxmodel
+> scenery\spawn_marker_nhe\spawn_marker_nhe.scenery
+> scenery\spawn_marker_nhe\bitmaps\spawn_marker_nhe.bitmap
+> scenery\spawn_marker_nhe\shaders\spawn_marker_nhe.shader_transparent_chicago
+> scenery\randoms\bitmaps\randoms_grey.bitmap
+> scenery\randoms\shaders\random_grey.shader_transparent_chicago
+> scenery\randoms\hangemhigh_randoms\hangemhigh_randoms.scenery
+> scenery\randoms\hangemhigh_randoms\hangemhigh_randoms.gbxmodel
+
+## Placing Spawn Markers in a Scenario Tag
+
+Put simply: the goal is to place a spawn marker at each player starting location that is active in Slayer game variants. To acclerate this process, we will use a batch file
