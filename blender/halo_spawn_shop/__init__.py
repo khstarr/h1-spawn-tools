@@ -3,7 +3,7 @@
 bl_info = {
     "name": "Halo Spawn Shop",
     "author": "Kendall Starr",
-    "version": (0,7,0),
+    "version": (0,7,2),
     "blender": (4,3,2),
     "location": "View3D > Tool",
     "description": "Halo 1 spawnalysis and 'random-zone' generator.",
@@ -28,7 +28,8 @@ import importlib
 # uncomment "importlib.reload(error)" below, save this file             /
 # disable addon, "Refresh Local", enable addon, observe error          /
 # then comment again, save this file, "Refresh Local" enable addon.   /
-#importlib.reload(cause_error) #  <---...____________________________/
+#                                                                    /
+#importlib.reload(cause_error) #  <---...___________________________/
 importlib.reload(func)
 importlib.reload(op_how)
 importlib.reload(op_map)

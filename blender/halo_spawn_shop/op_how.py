@@ -9,10 +9,10 @@ class HowTo(Operator):
     
     def execute(self, context):
         
-        print("do we have a scale model selected?",bpy.context.scene.scale_model.halo_one_scale_model_char)
-        i = int(bpy.context.scene.scale_model.halo_one_scale_model_char)
-        ch = str(i+1)
-        bpy.context.scene.scale_model.halo_one_scale_model_char = ch
+#        print("do we have a scale model selected?",bpy.context.scene.scale_model.halo_one_scale_model_char)
+#        i = int(bpy.context.scene.scale_model.halo_one_scale_model_char)
+#        ch = str(i+1)
+#        bpy.context.scene.scale_model.halo_one_scale_model_char = ch
     
         bpy.ops.wm.howto('INVOKE_DEFAULT')
         
@@ -20,7 +20,7 @@ class HowTo(Operator):
 
 
 class WM_HowTo(Operator):
-    bl_label = "Spawn Shop v0.7.0 - Guide"
+    bl_label = "Spawn Shop v0.7.2 - Guide"
     bl_idname = "wm.howto"
     
     def draw(self, context):

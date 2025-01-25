@@ -2,7 +2,9 @@
 import bpy
 from bpy.types import Operator
 #from .operators import *
-import functools#, random # real time tracking
+import functools, random # real time tracking
+import math
+from math import *
 
 
 ### GOALS:
@@ -14,6 +16,203 @@ import functools#, random # real time tracking
 # Revive the sqrt rand line in the spawn engine. Hopefully we can witness a random random happening.
 
 # NOTE: Can two players be dead at the same time, with two countdown timers running for them? Will have to experiment
+
+def RespawnPlayer(player, respawn_time):
+    
+    s = 0
+    
+    if player == 1:
+        s = bpy.context.scene.sec_p1
+    elif player == 2:
+        s = bpy.context.scene.sec_p2
+    elif player == 3:
+        s = bpy.context.scene.sec_p3
+    elif player == 4:
+        s = bpy.context.scene.sec_p4
+    
+    s -= 1
+    
+    if s > 0:
+        if player == 1:
+            bpy.context.scene.sec_p1 -= 1
+        elif player == 2:
+            bpy.context.scene.sec_p2 -= 1
+        elif player == 3:
+            bpy.context.scene.sec_p3 -= 1
+        elif player == 4:
+            bpy.context.scene.sec_p4 -= 1
+        
+        print("Player",player,"respawns in:",s)
+    
+        for area in bpy.context.screen.areas:
+            if area.type == "VIEW_3D":
+                area.tag_redraw()
+            
+        return 1 # time to wait before next iteration
+    else:
+        # choose a spawn!
+        SpawnSpheres = bpy.data.collections.get("Spawn Spheres")
+
+        Spartans = get_selected_spartans()
+            
+        if player == 1:
+            bpy.context.scene.sec_p1 = 0
+            select_spawn_point(bpy.context.scene.player_1_select,SpawnSpheres,Spartans)
+#            bpy.context.scene.player_1_select.hide_set(False)
+        elif player == 2:
+            bpy.context.scene.sec_p2 = 0
+            select_spawn_point(bpy.context.scene.player_2_select,SpawnSpheres,Spartans)
+#            bpy.context.scene.player_2_select.hide_set(False)
+        elif player == 3:
+            bpy.context.scene.sec_p3 = 0
+            select_spawn_point(bpy.context.scene.player_3_select,SpawnSpheres,Spartans)
+#            bpy.context.scene.player_3_select.hide_set(False)
+        elif player == 4:
+            bpy.context.scene.sec_p4 = 0
+            select_spawn_point(bpy.context.scene.player_4_select,SpawnSpheres,Spartans)
+#            bpy.context.scene.player_4_select.hide_set(False)
+        
+        for area in bpy.context.screen.areas:
+            if area.type == "VIEW_3D":
+                area.tag_redraw()
+                
+        s = -1
+        print("Respawn now!")
+#        bpy.app.timers.unregister(RespawnPlayer) # failed because "function is not registered". weird. thought a timer would keep going.
+
+def select_spawn_point(player,SpawnSpheres,Spartans):
+#    print("choose a spawn point for:",player.name,len(SpawnSpheres.objects),"spheres",len(Spartans.items()),"spartans")
+    if len(Spartans) > 0:
+        # LOOP THROUGH ALL SPAWNS
+        SpawnWeights = {}
+        for SS in SpawnSpheres.objects:
+            distance_rating = 1.0
+            friendly_bonus = 0.0
+            perspective = bpy.context.scene.perspective_enum.perspective # Future: if this is "Both", we need to loop through twice
+            # LOOP THROUGH ALL SPARTANS
+            for teamplayer, Spartan in Spartans.items():
+                
+                if Spartan.hide_get(): # spartan is manually hidden by user, or hidden by code (dead)
+#                    print("Not considering",Spartan.name)
+                    continue # don't consider this spartan
+                
+                tp = teamplayer.split(".")
+                team = tp[0]
+#                player = tp[1]
+                
+                dist = (Spartan.location - SS.location).length
+                halo_distance = dist * 0.01 # world units
+                
+                # TEAM OR ENEMY BLOCKING
+                if 0.25 <= halo_distance < 1.0:
+                    distance_rating = distance_rating * 0.1
+                elif halo_distance < 0.25:
+                    distance_rating = 0.0
+                
+                # TEAM INFLUENCE
+                if team == perspective:
+                    if 1.0 <= halo_distance <= 6.0: # 18.288 meters
+                        friendly_bonus = friendly_bonus + (1.0 - (halo_distance - 1.0) * 0.2) ** 0.6
+                    elif halo_distance < 1.0:
+                        friendly_bonus = 0.0
+                
+                # ENEMY INFLUENCE
+                if team != perspective:
+                    if 2.0 <= halo_distance <= 5.0: # 15.24 meters
+                        distance_rating = distance_rating * (halo_distance - 2.0) * (1/3)
+                    elif halo_distance < 2.0:
+                        distance_rating = 0.0
+
+            if friendly_bonus > 3.0:
+                friendly_bonus = 3.0                        # max is 3
+                
+            friendly_bonus = (friendly_bonus * 3.0) + 1.0   # thus, max is 10
+            rand = random.uniform(0.0,1.0)
+            spawn_weight = distance_rating * friendly_bonus * math.sqrt(rand)
+            
+            SpawnWeights[SS] = spawn_weight
+        
+        for ss, weight in SpawnWeights.items():
+            print(ss.name,"Weight:",weight)
+
+        chosen = get_highest_weight(SpawnWeights)
+        loc = chosen[0].location
+        print("Chosen Spawn:",chosen[0].name,"at:",loc)
+        player.location = loc
+        player.hide_set(False)
+            
+    else:
+        print("No spartans selected. Cannot calculate spawns. (This actually shouldn't even happen.)")
+
+def get_highest_weight(weights):
+    if not weights:
+        return None  # Return None if the dictionary is empty
+
+    max_key = max(weights, key = weights.get)
+    return max_key, weights[max_key]
+             
+
+class KillSpartan(Operator):
+    bl_idname = "object.kill_spartan"
+    bl_label = "Kill this Spartan"
+    bl_description = "If Auto-respawn is selected, he will respawn in 5 seconds."
+    
+    player: bpy.props.IntProperty(name="Player", default=-1)
+    
+    def execute(self, context):
+        
+#        sec = -1
+        p = self.player
+        if p == 1:
+            bpy.context.scene.sec_p1 = 5
+            sec = bpy.context.scene.sec_p1
+#            bpy.context.scene.player_1_select = None # works but it will stop the tracking. hide instead? and deconsider in tracker?
+            bpy.context.scene.player_1_select.hide_set(True)
+        elif p == 2:
+            bpy.context.scene.sec_p2 = 5
+            sec = bpy.context.scene.sec_p2
+            bpy.context.scene.player_2_select.hide_set(True)
+        elif p == 3:
+            bpy.context.scene.sec_p3 = 5
+            sec = bpy.context.scene.sec_p3
+            bpy.context.scene.player_3_select.hide_set(True)
+        elif p == 4:
+            bpy.context.scene.sec_p4 = 5
+            sec = bpy.context.scene.sec_p4
+            bpy.context.scene.player_4_select.hide_set(True)
+        else:
+            print("Got confused")
+            
+        for area in bpy.context.screen.areas:
+            if area.type == "VIEW_3D":
+                area.tag_redraw()
+        
+        print("Player",str(self.player),"respawns in: 5")
+        
+        try:
+            bpy.app.timers.register(functools.partial(RespawnPlayer, self.player, 5), first_interval=1)
+        except ValueError:
+            print("Couldn't start the countdown.")
+            
+#        print("Kill who?")
+        
+        return {"FINISHED"}
+    
+    
+class SpawnSpartan(Operator):
+    bl_idname = "object.spawn_spartan"
+    bl_label = "Spawn Spartan"
+    bl_description = "Manually respawn a Spartan"
+    
+    spawner: bpy.props.IntProperty(name="Spawner", default=-1)
+    
+    def execute(self, context):
+        print("Spawn who?", str(self.spawner))
+#        print("Kill who?")
+        
+        return {"FINISHED"}
+        
+
 
 class PaintSpartans(Operator):
     bl_idname = "object.paint_spartans"
@@ -69,6 +268,24 @@ def MakeSpartanMat(team):
         mat.node_tree.links.new(principled_bsdf.outputs['BSDF'], output_node.inputs['Surface'])
     return mat
 
+def get_selected_spartans():
+
+    Spartans = {}
+
+    p1 = bpy.context.scene.player_1_select
+    p2 = bpy.context.scene.player_2_select
+    p3 = bpy.context.scene.player_3_select
+    p4 = bpy.context.scene.player_4_select
+    if p1:
+        Spartans['blue.p1'] = p1
+    if p2:
+        Spartans['blue.p2'] = p2
+    if p3:
+        Spartans['red.p3'] = p3
+    if p4:
+        Spartans['red.p4'] = p4
+
+    return Spartans
 
 
 def update_tracking_bool(self, context):
@@ -77,19 +294,37 @@ def update_tracking_bool(self, context):
     enemy_spartan = bpy.context.scene.enemy_spartan_select  
     SpawnSpheres = bpy.data.collections.get("Spawn Spheres")
     
+
+    
     # Check if user wants to track spartans, begin timer if so
     if bpy.context.scene.real_time_tracking:
-        Spartans = {}
-        # if we ever expand to 4 spartans, we will need to loop through them, key them
-        # with a number and probably have a nested dictionary. this is good for now.
-        if team_spartan:
-            print("Start tracking...")
-            print("Selected team spartan:",team_spartan.name)
-            Spartans['team'] = team_spartan
-        if enemy_spartan:
-            print("Selected enemy Spartan:",enemy_spartan.name)
-            Spartans['enemy'] = enemy_spartan
+
+        Spartans = get_selected_spartans()
+        
+        # one player per team
+#        if team_spartan:
+#            print("Start tracking...")
+#            print("Selected team spartan:",team_spartan.name)
+##            Spartans['team'] = team_spartan
+#        if enemy_spartan:
+#            print("Selected enemy Spartan:",enemy_spartan.name)
+#            Spartans['enemy'] = enemy_spartan
 #            print(Spartans)
+
+        # two players per team
+#        p1 = bpy.context.scene.player_1_select
+#        p2 = bpy.context.scene.player_2_select
+#        p3 = bpy.context.scene.player_3_select
+#        p4 = bpy.context.scene.player_4_select
+#        if p1:
+#            Spartans['blue.p1'] = p1
+#        if p2:
+#            Spartans['blue.p2'] = p2
+#        if p3:
+#            Spartans['red.p3'] = p3
+#        if p4:
+#            Spartans['red.p4'] = p4
+            
         try:
             bpy.app.timers.register(functools.partial(TrackingLoop, team_spartan, enemy_spartan, SpawnSpheres, Spartans))
         except ValueError:
@@ -118,7 +353,8 @@ def reenable_tracking():
 def update_tracking(self, context):
     if bpy.context.scene.real_time_tracking:
         bpy.context.scene.real_time_tracking = False
-        bpy.app.timers.register(reenable_tracking, first_interval=0.01)
+        bpy.app.timers.register(reenable_tracking, first_interval=0.01) # needs to be a delay, 
+        # otherwise this one doesn't cancel and two timers run at once
 
 def TrackingLoop(team_spartan, enemy_spartan, SpawnSpheres, Spartans):
     
@@ -132,8 +368,17 @@ def TrackingLoop(team_spartan, enemy_spartan, SpawnSpheres, Spartans):
                     alpha = 0
                     distance_rating = 1.0
                     friendly_bonus = 0.0
+                    perspective = bpy.context.scene.perspective_enum.perspective # Future: if this is "Both", we need to loop through twice
                     # LOOP THROUGH ALL SPARTANS
-                    for team, Spartan in Spartans.items():
+                    for teamplayer, Spartan in Spartans.items():
+                        
+                        if Spartan.hide_get():
+#                            print("Not considering",Spartan.name)
+                            continue # don't consider this spartan
+                        
+                        tp = teamplayer.split(".")
+                        team = tp[0]
+                        player = tp[1]
                         
                         dist = (Spartan.location - SS.location).length
                         halo_distance = dist * 0.01
@@ -145,14 +390,14 @@ def TrackingLoop(team_spartan, enemy_spartan, SpawnSpheres, Spartans):
                             distance_rating = 0.0
                         
                         # TEAM INFLUENCE
-                        if team == 'team':
+                        if team == perspective:
                             if 1.0 <= halo_distance <= 6.0:       
                                 friendly_bonus = friendly_bonus + (1.0 - (halo_distance - 1.0) * 0.2) ** 0.6
                             elif halo_distance < 1.0:
                                 friendly_bonus = 0.0
                         
                         # ENEMY INFLUENCE
-                        if team == 'enemy':
+                        if team != perspective:
                             if 2.0 <= halo_distance <= 5.0:     
                                 distance_rating = distance_rating * (halo_distance - 2.0) * (1/3)
                             elif halo_distance < 2.0:
@@ -175,6 +420,9 @@ def TrackingLoop(team_spartan, enemy_spartan, SpawnSpheres, Spartans):
                         if alpha > bpy.context.scene.sphere_opacity:
                             alpha = bpy.context.scene.sphere_opacity
                     
+#                    if SS.name == "SpawnSphere_11": # debug - was making sure the teammate block distance was manifesting correctly. it was.
+#                        print("distance:",halo_distance,"distance rating:",distance_rating,"alpha:",alpha)
+                        
                     spawnmat.node_tree.nodes["Principled BSDF.001"].inputs[4].default_value = alpha
                                 
             return bpy.context.scene.spawn_refresh_rate # tells the timer how quickly to run again
@@ -193,6 +441,8 @@ def TrackingLoop(team_spartan, enemy_spartan, SpawnSpheres, Spartans):
 
 
 def register():
+    bpy.utils.register_class(KillSpartan)
+    bpy.utils.register_class(SpawnSpartan)
     bpy.utils.register_class(PaintSpartans)
     
      # keeping this here in case we add a class to this script
@@ -214,6 +464,34 @@ def register():
         update = update_tracking
     )
     
+    bpy.types.Scene.player_1_select = bpy.props.PointerProperty(
+        name = "",
+        description = "Select Player 1 (Blue Team)",
+        type = bpy.types.Object,
+        update = update_tracking
+    )
+    
+    bpy.types.Scene.player_2_select = bpy.props.PointerProperty(
+        name = "",
+        description = "Select Player 2 (Blue Team)",
+        type = bpy.types.Object,
+        update = update_tracking
+    )
+    
+    bpy.types.Scene.player_3_select = bpy.props.PointerProperty(
+        name = "",
+        description = "Select Player 3 (Red Team)",
+        type = bpy.types.Object,
+        update = update_tracking
+    )
+    
+    bpy.types.Scene.player_4_select = bpy.props.PointerProperty(
+        name = "",
+        description = "Select Player 4 (Red Team)",
+        type = bpy.types.Object,
+        update = update_tracking
+    )
+    
     bpy.types.Scene.real_time_tracking = bpy.props.BoolProperty(
         name = "Real Time Tracking",
         description = "Show and hide spawn markers and influence spheres\nbased on the locations of the selected Spartan objects.",
@@ -227,6 +505,34 @@ def register():
         min = 0.01,
         max = 1
     )
+    bpy.types.Scene.sec_p1 = bpy.props.IntProperty(
+        name = "",
+        description = "Respawn time remaining",
+        default = 0,
+        min = 0,
+        max = 10
+    )
+    bpy.types.Scene.sec_p2 = bpy.props.IntProperty(
+        name = "",
+        description = "Respawn time remaining",
+        default = 0,
+        min = 0,
+        max = 10
+    )
+    bpy.types.Scene.sec_p3 = bpy.props.IntProperty(
+        name = "",
+        description = "Respawn time remaining",
+        default = 0,
+        min = 0,
+        max = 10
+    )
+    bpy.types.Scene.sec_p4 = bpy.props.IntProperty(
+        name = "",
+        description = "Respawn time remaining",
+        default = 0,
+        min = 0,
+        max = 10
+    )
 
 
 def unregister():
@@ -235,9 +541,19 @@ def unregister():
 #    for cls in classes:
 #        unregister_class(cls)
 
+    bpy.utils.unregister_class(KillSpartan)
+    bpy.utils.unregister_class(SpawnSpartan)
     bpy.utils.unregister_class(PaintSpartans)
         
     del bpy.types.Scene.team_spartan_select
     del bpy.types.Scene.enemy_spartan_select
+    del bpy.types.Scene.player_1_select
+    del bpy.types.Scene.player_2_select
+    del bpy.types.Scene.player_3_select
+    del bpy.types.Scene.player_4_select
     del bpy.types.Scene.real_time_tracking
     del bpy.types.Scene.spawn_refresh_rate
+    del bpy.types.Scene.sec_p1
+    del bpy.types.Scene.sec_p2
+    del bpy.types.Scene.sec_p3
+    del bpy.types.Scene.sec_p4
