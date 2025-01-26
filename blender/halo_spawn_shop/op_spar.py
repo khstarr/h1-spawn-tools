@@ -259,9 +259,11 @@ class SpawnSpartan(Operator):
 class GenerateSpartans(Operator):
     bl_idname = "object.generate_spartans"
     bl_label = "Generate Spartans"
-    bl_description = """Generate 4 Spartans (2 blue, 2 red), and spawn them into the map.
-(Requires at least 4 spawn points in the 'Player Starting Locations'
-collection."""
+    bl_description = """Generate Spartans
+
+Adds 2 blue and 2 red Spartans to the map, spawning them the same way Halo would.
+(Requires at least 4 spawn points in the 'Player Starting Locations' collection, and all
+the Spawn Spheres populated and linked to said spawns)."""
     
     def execute(self, context):
         print("Go ahead and generate the spartans now. Paint them. Select them.")
@@ -496,7 +498,7 @@ def update_tracking_bool(self, context):
     SpawnSpheres = bpy.data.collections.get("Spawn Spheres")
 
     # Check if user wants to track spartans, begin timer if so
-    if bpy.context.scene.real_time_tracking:
+    if bpy.context.scene.prediction:
 
         Spartans = get_selected_spartans()
             
@@ -521,17 +523,17 @@ def update_tracking_bool(self, context):
 
 def reenable_tracking():
     print("Restart tracking...")
-#    bpy.context.scene.real_time_tracking = True
+#    bpy.context.scene.prediction = True
 
 def update_tracking(self, context):
-    if bpy.context.scene.real_time_tracking:
-        bpy.context.scene.real_time_tracking = False
+    if bpy.context.scene.prediction:
+        bpy.context.scene.prediction = False
         bpy.app.timers.register(reenable_tracking, first_interval=0.01) # needs to be a delay, 
         # otherwise this one doesn't cancel and two timers run at once
 
 def TrackingLoop(SpawnSpheres, Spartans):
     
-    if(bpy.context.scene.real_time_tracking):
+    if(bpy.context.scene.prediction):
         
         if len(Spartans) > 0:
             # LOOP THROUGH ALL SPAWNS
@@ -694,7 +696,7 @@ def register():
         min = 0.01,
         max = 1
     )
-    bpy.types.Scene.real_time_tracking = bpy.props.BoolProperty(
+    bpy.types.Scene.prediction = bpy.props.BoolProperty(
         name = "Real Time Tracking",
         description = "Show and hide spawn markers and influence spheres\nbased on the locations of the selected Spartan objects.",
         default = False,
@@ -714,7 +716,7 @@ def unregister():
     del bpy.types.Scene.player_4_select
     del bpy.types.Scene.auto_respawn
     del bpy.types.Scene.spawn_refresh_rate
-    del bpy.types.Scene.real_time_tracking
+    del bpy.types.Scene.prediction
     del bpy.types.Scene.sec_p1
     del bpy.types.Scene.sec_p2
     del bpy.types.Scene.sec_p3

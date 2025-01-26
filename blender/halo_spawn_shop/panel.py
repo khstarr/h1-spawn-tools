@@ -30,7 +30,7 @@ from .func import update_sphere_color, update_sphere_opacity
 
 class VIEW_3D_PT_halo_spawn_shop(Panel):
         
-    bl_label = "Spawn Shop    v0.7.8"
+    bl_label = "Spawn Shop    v0.8.0"
     bl_idname = "OBJECT_PT_SpawnShop"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI" # Called with N key
@@ -121,8 +121,12 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
         if panel:
             
             row = panel.row()
-            row.prop(context.scene, "auto_respawn", text="Auto-respawn")
-            row.operator("object.generate_spartans", text="", icon="COMMUNITY")
+            
+            split = panel.split(factor=0.75)
+            left = split.column()
+            right = split.column()
+            left.prop(context.scene, "auto_respawn", text="Auto-respawn")
+            right.operator("object.generate_spartans", text="+", icon="COMMUNITY")
 
             row = panel.row(align=True)
             row.label(text="", icon="SEQUENCE_COLOR_05")
@@ -182,7 +186,7 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
             left.label(text="Refresh Rate:")
             row = right.row()
             right.prop(context.scene, "spawn_refresh_rate", text="")
-            panel.prop(context.scene, "real_time_tracking", text="Real Time Tracking")
+            panel.prop(context.scene, "prediction", text="Real Time Prediction")
         
 #        # neat little thing - show (and edit from panel) context.object's location and rotation
 #        row = layout.row() 
