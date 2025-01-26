@@ -72,30 +72,35 @@ class PopulateSpawns(bpy.types.Operator):
     
     def execute(self, context):
         
-        print("Hello from the ico-sphere generator!")
+        print("Generating spheres and markers...")
         
         scene = bpy.context.scene
                 
         # look for 'Spawn Shop'
         SpawnShopCollection = bpy.context.scene.collection.children.get("Spawn Shop")
         if SpawnShopCollection:
-            print("Spawn Shop collection already exists, which is good. Proceeding.")
+            print("Spawn Shop collection already exists, which is good. Proceeding...")
         else:
             SpawnShopCollection = bpy.data.collections.new("Spawn Shop")
             bpy.context.scene.collection.children.link(SpawnShopCollection)
         
         # look for 'Spawn Spheres'
+        make_spheres = True
         SpawnSpheresCollection = SpawnShopCollection.children.get("Spawn Spheres")
         if SpawnSpheresCollection:
             print("Spawn Spheres collection already exists!")
             # how many children
             if len(SpawnSpheresCollection.objects) > 0 : 
                 print("'Spawn Spheres' collection has children!")
-                error_line_one = "'Spawn Spheres' collection not empty!"
-                error_line_two = "Please delete the collection first, or move on to Step 3."
-                self.report({'ERROR'},error_line_one+"\n"+error_line_two)
-                return {"CANCELLED"} # canceling because if these are here, markers likely are also. if not,
+#                error_line_one = "'Spawn Spheres' collection not empty!"
+#                error_line_two = "Please delete the collection first, or move on to Step 3."
+#                self.report({'ERROR'},error_line_one+"\n"+error_line_two)
+#                return {"CANCELLED"} # canceling because if these are here, markers likely are also. if not,
                                      # user only half deleted stuff, which means we don't know what to trust
+                make_spheres = False
+                error_line_one = "'Spawn Spheres' collection already exists and is not empty. As such, no "
+                error_line_two = "new spheres were created. Please double check you have what you need."
+                self.report({"ERROR"},error_line_one+"\n"+error_line_two)
             else:
                 print("...but it's empty. Carry on.")
         else:
@@ -103,17 +108,22 @@ class PopulateSpawns(bpy.types.Operator):
             SpawnShopCollection.children.link(SpawnSpheresCollection)
         
         # look for 'Spawn Markers'
+        make_markers = True
         SpawnMarkersCollection = SpawnShopCollection.children.get("Spawn Markers")
         if SpawnMarkersCollection:
             print("Spawn Markers collection already exists!")
             # how many children
             if len(SpawnMarkersCollection.objects) > 0 :
                 print("'Spawn Markers' collection has children!")
-                error_line_one = "'Spawn Markers' collection not empty!"
-                error_line_two = "Please delete the collection first, or move on to Step 3."
-                self.report({'ERROR'},error_line_one+"\n"+error_line_two)
-                return {"CANCELLED"} # canceling because if these are here, spheres likely are also. if not,
+#                error_line_one = "'Spawn Markers' collection not empty!"
+#                error_line_two = "Please delete the collection first, or move on to Step 3."
+#                self.report({'ERROR'},error_line_one+"\n"+error_line_two)
+#                return {"CANCELLED"} # canceling because if these are here, spheres likely are also. if not,
                                      # user only half deleted stuff, which means we don't know what to trust
+                make_markers = False
+                error_line_one = "'Spawn Markers' collection already exists and is not empty. As such, no "
+                error_line_two = "new markers were created. Please double check you have what you need."
+                self.report({"ERROR"},error_line_one+"\n"+error_line_two)
             else:
                 print("...but it's empty. Carry on.")
         else:
@@ -131,8 +141,10 @@ class PopulateSpawns(bpy.types.Operator):
             color = bpy.context.scene.sphere_color_enum.sphere_color
             bout = MakeMat("SpawnMat_",color)
             
-            SampleSphere = MakeSphere(bout)
-            SampleMarker = MakeMarker(bout)
+            if make_spheres:
+                SampleSphere = MakeSphere(bout)
+            if make_markers:
+                SampleMarker = MakeMarker(bout)
             
             SlayerSpawns = {} # used only for counting the
             CTFSpawns = {}    # total number of spawns at end of loop
@@ -150,51 +162,52 @@ class PopulateSpawns(bpy.types.Operator):
                     slayer_count += 1
                     n = Spawn.name.split("_")[1]
                     SlayerSpawns[n] = Spawn
-                                
-                    # COPY SPHERE
-#                    newname = "SpawnSphere_"+n
-                    NewSphere = SampleSphere.copy()
-                    NewSphere.data = SampleSphere.data.copy()
-                    NewSphere.location = Spawn.location
-                    NewSphere.rotation_euler = Spawn.rotation_euler
-                    NewSphere.name = "SpawnSphere_"+n
-                    NewSphere.data.name = "SpawnSphere_Mesh_"+n
                     
-                    dupmat = bout.copy()
-                    existing = bpy.data.materials.get("SpawnMat_"+n)
-                    if existing:
-                        bpy.data.materials.remove(existing)
-                    dupmat.name = "SpawnMat_"+n
-                    NewSphere.data.materials[0] = dupmat
+                    if make_spheres:
+                        # COPY SPHERE
+                        NewSphere = SampleSphere.copy()
+                        NewSphere.data = SampleSphere.data.copy()
+                        NewSphere.location = Spawn.location
+                        NewSphere.rotation_euler = Spawn.rotation_euler
+                        NewSphere.name = "SpawnSphere_"+n
+                        NewSphere.data.name = "SpawnSphere_Mesh_"+n
+                        
+                        dupmat = bout.copy()
+                        existing = bpy.data.materials.get("SpawnMat_"+n)
+                        if existing:
+                            bpy.data.materials.remove(existing)
+                        dupmat.name = "SpawnMat_"+n
+                        NewSphere.data.materials[0] = dupmat
 
-                    # ADD SPHERE TO 'Spawn Spheres' COLLECTION, UNLINK FROM 'Scene Collection'
-                    if NewSphere.users_collection:
-                        parent = NewSphere.users_collection[0]
-                        parent.objects.unlink(NewSphere)
-                    SpawnSpheresCollection.objects.link(NewSphere)
+                        # ADD SPHERE TO 'Spawn Spheres' COLLECTION, UNLINK FROM 'Scene Collection'
+                        if NewSphere.users_collection:
+                            parent = NewSphere.users_collection[0]
+                            parent.objects.unlink(NewSphere)
+                        SpawnSpheresCollection.objects.link(NewSphere)
+                        
+                        NewSphere.parent = Spawn
+                        NewSphere.matrix_parent_inverse = Spawn.matrix_world.inverted()
                     
-                    NewSphere.parent = Spawn
-                    NewSphere.matrix_parent_inverse = Spawn.matrix_world.inverted()
-                    
-                    # MAKE SPAWN MARKER
-                    NewMarker = SampleMarker.copy()
-                    NewMarker.data = SampleMarker.data.copy()
-                    NewMarker.location = Spawn.location
-                    NewMarker.rotation_euler = Spawn.rotation_euler
-                    NewMarker.name = "SpawnMarker_"+n
-                    NewMarker.data.name = "SpawnMarker_Mesh_"+n
-                    
-                    NewMarker.data.materials[0] = dupmat
-                    
-                    # MOVE SPAWN MARKER TO 'Spawn Markers' COLLECTION, UNLINK FROM 'Scene Collection'
-                    if NewMarker.users_collection:
-                        parent = NewMarker.users_collection[0]
-                        parent.objects.unlink(NewMarker)
-                    SpawnMarkersCollection.objects.link(NewMarker)
-                    
-                    # MAKE SPAWN MARKER A CHILD OF ITS RESPECTIVE Player Starting Location
-                    NewMarker.parent = Spawn
-                    NewMarker.matrix_parent_inverse = Spawn.matrix_world.inverted()
+                    if make_markers:
+                        # MAKE SPAWN MARKER
+                        NewMarker = SampleMarker.copy()
+                        NewMarker.data = SampleMarker.data.copy()
+                        NewMarker.location = Spawn.location
+                        NewMarker.rotation_euler = Spawn.rotation_euler
+                        NewMarker.name = "SpawnMarker_"+n
+                        NewMarker.data.name = "SpawnMarker_Mesh_"+n
+                        
+                        NewMarker.data.materials[0] = dupmat
+                        
+                        # MOVE SPAWN MARKER TO 'Spawn Markers' COLLECTION, UNLINK FROM 'Scene Collection'
+                        if NewMarker.users_collection:
+                            parent = NewMarker.users_collection[0]
+                            parent.objects.unlink(NewMarker)
+                        SpawnMarkersCollection.objects.link(NewMarker)
+                        
+                        # MAKE SPAWN MARKER A CHILD OF ITS RESPECTIVE Player Starting Location
+                        NewMarker.parent = Spawn
+                        NewMarker.matrix_parent_inverse = Spawn.matrix_world.inverted()
 
                 elif Spawn.tag_player_starting_location.type_0 in ctfSpawnIndices:
                     ctf_count += 1
@@ -205,14 +218,17 @@ class PopulateSpawns(bpy.types.Operator):
             print("CTF spawns:",len(CTFSpawns))
             
             # delete samples
-            sphere_mesh = SampleSphere.data.name
-            marker_mesh = SampleMarker.data.name
-            bpy.data.objects.remove(SampleMarker, do_unlink=True)
-            bpy.data.objects.remove(SampleSphere, do_unlink=True)
-            if bpy.data.meshes[sphere_mesh]:
-                bpy.data.meshes.remove(bpy.data.meshes[sphere_mesh])
-            if bpy.data.meshes[marker_mesh]:
-                bpy.data.meshes.remove(bpy.data.meshes[marker_mesh])
+            if make_spheres:
+                sphere_mesh = SampleSphere.data.name
+                bpy.data.objects.remove(SampleSphere, do_unlink=True)
+                if bpy.data.meshes[sphere_mesh]:
+                    bpy.data.meshes.remove(bpy.data.meshes[sphere_mesh])
+            
+            if make_markers:
+                marker_mesh = SampleMarker.data.name
+                bpy.data.objects.remove(SampleMarker, do_unlink=True)
+                if bpy.data.meshes[marker_mesh]:
+                    bpy.data.meshes.remove(bpy.data.meshes[marker_mesh])
              
         else:
             self.report({'ERROR'}, "Player Starting Locations not found in Scene root!")

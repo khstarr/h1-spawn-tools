@@ -38,7 +38,7 @@ class ShellMap(Operator):
     
     def execute(self, context):
         
-        print("Heller from the sheller!")
+        print("Shelling the map...")
         
         selected_bsp = bpy.context.scene.bsp_select            
                        

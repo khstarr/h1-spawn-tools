@@ -174,8 +174,8 @@ def get_highest_weight(weights):
 
 class KillSpartan(Operator):
     bl_idname = "object.kill_spartan"
-    bl_label = "Kill this Spartan"
-    bl_description = "If Auto-respawn is selected, he will respawn in 5 seconds."
+    bl_label = "Kill"
+    bl_description = "If 'Auto-respawn' is selected, he will respawn in 5 seconds."
     
     player: bpy.props.IntProperty(name="Player", default=-1)
     
@@ -230,8 +230,8 @@ class KillSpartan(Operator):
     
 class SpawnSpartan(Operator):
     bl_idname = "object.spawn_spartan"
-    bl_label = "Spawn Spartan"
-    bl_description = "Manually respawn a Spartan"
+    bl_label = "Respawn"
+    bl_description = "Manually respawn this Spartan immediately."
     
     spawner: bpy.props.IntProperty(name="Spawner", default=-1)
     

@@ -88,12 +88,12 @@ class GenerateRandoms(Operator):
     
     def invoke(self, context, event):
         Spheres = bpy.data.collections.get("Spawn Spheres")
-        if not Spheres == 0:
-            self.report({"ERROR"},"Could not find spheres for boolean operation!")
+        if not Spheres:
+            self.report({"ERROR"},"Could not find 'Spawn Spheres' collection!")
             return {"CANCELLED"}
         else:
             if len(Spheres.objects) == 0:
-                self.report({"ERROR"},"Could not find spheres for boolean operation!")
+                self.report({"ERROR"},"'Spawn Spheres' collection is empty!")
                 return {"CANCELLED"}
             else:
                 return context.window_manager.invoke_props_dialog(self, width=400)
@@ -108,7 +108,7 @@ class GenerateRandomsConfirm(Operator):
     sphere_detail: bpy.props.IntProperty(name="Sphere Detail")
     
     def execute(self, context):
-        print("Hello from the randoms generator!")
+        print("Calculating randoms...")
 
         detail = self.sphere_detail
         
@@ -162,6 +162,7 @@ class GenerateRandomsConfirm(Operator):
             if(bpy.context.scene.apply_randoms_modifier):
                 bpy.ops.object.modifier_apply(modifier="Bootilt")
         else:
+            print("shelled_bsp == None. why?")
 #            SpawnShopCollection = bpy.context.scene.collection.children.get("Spawn Shop")
 #            
 #            if SpawnShopCollection is not None:
@@ -183,7 +184,7 @@ class GenerateRandomsConfirm(Operator):
 #                else:
 #                    self.report({'ERROR'}, "Could not find 'BSP.shell'! Did you forget to run 'Shell Map'?")
 #            else:
-             self.report({'ERROR'}, "Could not find 'Spawn Shop' collection!\nPlease run 'Shell Map' and 'Populate All Spawns' first.")
+            self.report({'ERROR'}, "Could not find 'Spawn Shop' collection!\nPlease run 'Shell Map' and 'Populate All Spawns' first.")
 
             
         
