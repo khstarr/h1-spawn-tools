@@ -1,7 +1,31 @@
+# ##### BEGIN MIT LICENSE BLOCK #####
+#
+# MIT License
+#
+# Copyright (c) 2025 Kendall Starr
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+# ##### END MIT LICENSE BLOCK #####
 
 import bpy
 from bpy.types import Operator
-
 from .func import *
 
 
@@ -22,7 +46,7 @@ class GenerateRandoms(Operator):
         tris = 0
     
         kinda_break = "Press OK if you're heading to the bathroom."
-    
+        
         for sphere in Spheres.objects:
             total_spheres += 1
             
@@ -46,19 +70,16 @@ class GenerateRandoms(Operator):
         layout = self.layout
         layout.label(text="Warning!", icon="ERROR")
         
+#        if total_spheres > 0:
         row = layout.row()
-        row.label(text="         You're about to boolean "+str(total_spheres)+" spheres, each with "+tris_formatted+" triangles.") # mention Exact or Fast?
-#        row.scale_y = 0.5
-        
+        row.label(text="         You're about to boolean "+str(total_spheres)+" spheres, each with "+tris_formatted+" triangles.") 
         row = layout.row()
-        row.label(text="         Blender may stop responding during this operation!")
-#        row.scale_y = 0.5
-        
+        row.label(text="         Blender may stop responding during this operation!")        
         row = layout.row()
         row.label(text="         "+kinda_break)
-#        row.scale_y = 0.5
         
         row = layout.row()
+            
      
     def execute(self, context):       
         print("Go get a coffee")
@@ -66,8 +87,16 @@ class GenerateRandoms(Operator):
         return {"FINISHED"}
     
     def invoke(self, context, event):
-        
-        return context.window_manager.invoke_props_dialog(self, width=400)
+        Spheres = bpy.data.collections.get("Spawn Spheres")
+        if not Spheres == 0:
+            self.report({"ERROR"},"Could not find spheres for boolean operation!")
+            return {"CANCELLED"}
+        else:
+            if len(Spheres.objects) == 0:
+                self.report({"ERROR"},"Could not find spheres for boolean operation!")
+                return {"CANCELLED"}
+            else:
+                return context.window_manager.invoke_props_dialog(self, width=400)
 
 
 class GenerateRandomsConfirm(Operator):
@@ -133,28 +162,28 @@ class GenerateRandomsConfirm(Operator):
             if(bpy.context.scene.apply_randoms_modifier):
                 bpy.ops.object.modifier_apply(modifier="Bootilt")
         else:
-            SpawnShopCollection = bpy.context.scene.collection.children.get("Spawn Shop")
-            
-            if SpawnShopCollection is not None:
-                for obj in SpawnShopCollection.objects:
-                    if obj.name == "BSP.shell":
-                        found = True
-                        break
-                if(found):
-                    print("Found shelled in collection!")
-                    bpy.context.view_layer.objects.active = shelled_bsp
-                    shelled_bsp.select_set(True)
-                    boo = shelled_bsp.modifiers.new("Bootilt","BOOLEAN")
-                    boo.solver = quality
-                    boo.operand_type = 'COLLECTION'
-                    boo.collection = SpawnSpheresCollection
-                    shelled_bsp.name = "BSP.shell.rand."+str(detail)
-#                    if(bpy.context.scene.apply_randoms_modifier):            # why is this
-#                        bpy.ops.object.modifier_apply(modifier="Bootilt")    # commented out?
-                else:
-                    self.report({'ERROR'}, "Could not find 'BSP.shell'! Did you forget to run 'Shell Map'?")
-            else:
-                self.report({'ERROR'}, "Could not find 'Spawn Shop' collection!\nPlease run 'Shell Map' and 'Populate All Spawns' first.")
+#            SpawnShopCollection = bpy.context.scene.collection.children.get("Spawn Shop")
+#            
+#            if SpawnShopCollection is not None:
+#                for obj in SpawnShopCollection.objects:
+#                    if obj.name == "BSP.shell":
+#                        found = True
+#                        break
+#                if(found):
+#                    print("Found shelled in collection!")
+#                    bpy.context.view_layer.objects.active = shelled_bsp
+#                    shelled_bsp.select_set(True)
+#                    boo = shelled_bsp.modifiers.new("Bootilt","BOOLEAN")
+#                    boo.solver = quality
+#                    boo.operand_type = 'COLLECTION'
+#                    boo.collection = SpawnSpheresCollection
+#                    shelled_bsp.name = "BSP.shell.rand."+str(detail)
+##                    if(bpy.context.scene.apply_randoms_modifier):            # why is this
+##                        bpy.ops.object.modifier_apply(modifier="Bootilt")    # commented out?
+#                else:
+#                    self.report({'ERROR'}, "Could not find 'BSP.shell'! Did you forget to run 'Shell Map'?")
+#            else:
+             self.report({'ERROR'}, "Could not find 'Spawn Shop' collection!\nPlease run 'Shell Map' and 'Populate All Spawns' first.")
 
             
         

@@ -1,15 +1,36 @@
-# License
+# ##### BEGIN MIT LICENSE BLOCK #####
+#
+# MIT License
+#
+# Copyright (c) 2025 Kendall Starr
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+# ##### END MIT LICENSE BLOCK #####
 
 import bpy
 from bpy.types import Panel
-
 from .func import update_sphere_color, update_sphere_opacity
-
-#from .operators import get_rig_and_cam, CameraRigMixin
 
 class VIEW_3D_PT_halo_spawn_shop(Panel):
         
-    bl_label = "Spawn Shop    v0.7.2"
+    bl_label = "Spawn Shop    v0.7.8"
     bl_idname = "OBJECT_PT_SpawnShop"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI" # Called with N key
@@ -40,7 +61,7 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
 #        row = layout.row()                   # put this header back in
 #        row.label(text="Spawn Shop [0.9.9]") # if HIDE_HEADER is in use
 #        row = layout.row()
-#        row.operator("object.spawn_scenery", text="Spawn Scenery")
+#        row.operator("object.spawn_scenery", text="Spawn Scenery") # not in use
         row = layout.row()
         row.operator("object.how_to",icon="QUESTION")
         row = layout.row()
@@ -57,7 +78,7 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
 
 # STEP 2
         header, panel = layout.panel("sppa", default_closed=False)
-        header.label(text="Spheres & Markers")#, icon="EVENT_NDOF_BUTTON_2") # EVENT_NDOF_BUTTON_2 IPO_QUAD EVENT_TWOKEY
+        header.label(text="Populate The Map")#, icon="EVENT_NDOF_BUTTON_2") # EVENT_NDOF_BUTTON_2 IPO_QUAD EVENT_TWOKEY
         header.scale_y = 1.25
         if panel:
             split = panel.split(factor=0.55)
@@ -71,9 +92,10 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
             
             left.label(text="Sphere Detail:")
             right.prop(context.scene, "sphere_detail", text="") # need to add this option for inner sphere
-                                    
-            panel.operator("object.add_marker", icon = "PMARKER_SEL") # PMARKER_ACT PMARKER_SEL
-            panel.operator("object.add_sphere", icon = "MESH_CIRCLE")
+            
+            row = panel.row()                     
+            row.operator("object.add_marker", icon = "PMARKER_SEL") # PMARKER_ACT PMARKER_SEL
+            row.operator("object.add_sphere", icon = "MESH_CIRCLE")
             # other icons: SHADING_RENDERED NODE_MATERIAL SHADING_RENDERED MESH_CIRCLE
             panel.operator("object.populate_spawns", icon = "POINTCLOUD_DATA")
             split = panel.split(factor=0.75)
@@ -91,80 +113,72 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
             panel.prop(context.scene, "use_exact", text="Use 'Exact' Boolean")
             panel.prop(context.scene, "apply_randoms_modifier", text="Apply When Completed")
             panel.operator("object.generate_randoms", icon = "HOLDOUT_ON")
-        
-# STEP 4 - 1 player per team
-#        header, panel = layout.panel("inpa", default_closed=False)
-#        header.label(text="Gameplay Simulation", icon="EVENT_NDOF_BUTTON_4") # EVENT_NDOF_BUTTON_4 IPO_QUART EVENT_FOURKEY
-#        header.scale_y = 1.25
-#        if panel:
-#            panel.label(text="Select Spartan(s):")
-#            split = panel.split(factor=0.3)
-#            left = split.column()
-#            right = split.column()
-#            left.label(text="Team:")
-#            right.prop(context.scene, "team_spartan_select", text="")
-#            left.label(text="Enemy:")
-#            right.prop(context.scene, "enemy_spartan_select", text="")
-#            row = right.row()
-#            right.operator("object.paint_spartans", icon="BRUSH_DATA")
-#            
-#            panel.prop(context.scene, "real_time_tracking", text="Real Time Tracking")
-#            split = panel.split(factor=0.5)
-#            left = split.column()
-#            left.label(text="Refresh Rate:")
-#            right = split.column()
-#            right.prop(context.scene, "spawn_refresh_rate", text="")
 
-# STEP 4 - 2v2 support
+# STEP 4
         header, panel = layout.panel("inpa", default_closed=False)
         header.label(text="Gameplay Simulation")#, icon="EVENT_NDOF_BUTTON_4") # EVENT_NDOF_BUTTON_4 IPO_QUART EVENT_FOURKEY
         header.scale_y = 1.25
         if panel:
             
-#            panel.label(text="Blue Team:")
+            row = panel.row()
+            row.prop(context.scene, "auto_respawn", text="Auto-respawn")
+            row.operator("object.generate_spartans", text="", icon="COMMUNITY")
+
             row = panel.row(align=True)
             row.label(text="", icon="SEQUENCE_COLOR_05")
             row.label(text="", icon="EVENT_ONEKEY")
             row.prop(context.scene, "player_1_select", text="")
-            row.operator("object.kill_spartan", text="", icon="GHOST_DISABLED").player = 1 # TRACKER CURSOR GHOST_ENABLED POSE_HLT GHOST_DISABLED
-            row.operator("object.spawn_spartan", text="", icon=self.countdowns[context.scene.sec_p1]).spawner = 1 # FILE_REFRESH 
+            if bpy.context.scene.player_1_select:
+                if bpy.context.scene.player_1_select.hide_get():
+                    row.label(text="", icon="RIGHTARROW_THIN")
+                else:
+                    row.operator("object.kill_spartan", text="", icon="GHOST_DISABLED").player = 1
+                row.operator("object.spawn_spartan", text="", icon=self.countdowns[context.scene.sec_p1]).spawner = 1 # FILE_REFRESH
+                
             row = panel.row(align=True)
             row.label(text="", icon="SEQUENCE_COLOR_05")
             row.label(text="", icon="EVENT_TWOKEY")
             row.prop(context.scene, "player_2_select", text="")
-            row.operator("object.kill_spartan", text="", icon="GHOST_DISABLED").player = 2 # TRACKER CURSOR GHOST_ENABLED POSE_HLT GHOST_DISABLED
-            row.operator("object.spawn_spartan", text="", icon=self.countdowns[context.scene.sec_p2]).spawner = 2 # FILE_REFRESH
-        
-#            panel.label(text="Red Team:")
+            if bpy.context.scene.player_2_select:
+                if bpy.context.scene.player_2_select.hide_get():
+                    row.label(text="", icon="RIGHTARROW_THIN")
+                else:
+                    row.operator("object.kill_spartan", text="", icon="GHOST_DISABLED").player = 2
+                row.operator("object.spawn_spartan", text="", icon=self.countdowns[context.scene.sec_p2]).spawner = 2 # FILE_REFRESH
+
             row = panel.row(align=True)
             row.label(text="", icon="SEQUENCE_COLOR_01")
             row.label(text="", icon="EVENT_THREEKEY")
             row.prop(context.scene, "player_3_select", text="")
-            row.operator("object.kill_spartan", text="", icon="GHOST_DISABLED").player = 3 # TRACKER CURSOR GHOST_ENABLED POSE_HLT GHOST_DISABLED
-            row.operator("object.spawn_spartan", text="", icon=self.countdowns[context.scene.sec_p3]).spawner = 3 # FILE_REFRESH
+            if bpy.context.scene.player_3_select:
+                if bpy.context.scene.player_3_select.hide_get():
+                    row.label(text="", icon="RIGHTARROW_THIN")
+                else:
+                    row.operator("object.kill_spartan", text="", icon="GHOST_DISABLED").player = 3 
+                row.operator("object.spawn_spartan", text="", icon=self.countdowns[context.scene.sec_p3]).spawner = 3 # FILE_REFRESH
+                
             row = panel.row(align=True)
             row.label(text="", icon="SEQUENCE_COLOR_01")
             row.label(text="", icon="EVENT_FOURKEY")
             row.prop(context.scene, "player_4_select", text="")
-            row.operator("object.kill_spartan", text="", icon="GHOST_DISABLED").player = 4 # TRACKER CURSOR GHOST_ENABLED POSE_HLT GHOST_DISABLED
-            row.operator("object.spawn_spartan", text="", icon=self.countdowns[context.scene.sec_p4]).spawner = 4 # FILE_REFRESH
+            if bpy.context.scene.player_4_select:
+                if bpy.context.scene.player_4_select.hide_get():
+                    row.label(text="", icon="RIGHTARROW_THIN")
+                else:
+                    row.operator("object.kill_spartan", text="", icon="GHOST_DISABLED").player = 4 
+                row.operator("object.spawn_spartan", text="", icon=self.countdowns[context.scene.sec_p4]).spawner = 4 # FILE_REFRESH
 
 # EXTRAS
 #            row = layout.row()
-#            row.operator("object.paint_spartans", icon="BRUSH_DATA")
+#            row.operator("object.paint_spartans", icon="BRUSH_DATA") # not in use
             
-            
-            row = panel.row() # needs columns, blue and red are too wide!!
+            row = panel.row()
             split = panel.split(factor=0.5)
             left = split.column()
             right = split.column()
             left.label(text="Perspective:")
             row = right.row()
             row.prop(context.scene.perspective_enum, "perspective", expand=True)
-#            row = panel.row()
-#            row = panel.row()
-#            split = row.split(factor=0.5)
-#            left = split.column()
             left.label(text="Refresh Rate:")
             row = right.row()
             right.prop(context.scene, "spawn_refresh_rate", text="")
@@ -179,9 +193,7 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
 #            col_left.prop(context.object, "location", text="Location")
 #            col_left.prop(context.object, "rotation_euler", text="Rotation")
                 
-# EXTRAS
-#        layout.operator("object.delete_spheres", icon = "X")
-#        row = layout.row() # space
+#       <3 <3 <3
         row = layout.row()
         row.alignment = 'CENTER'
         row.label(text="   Long live Halo 1")

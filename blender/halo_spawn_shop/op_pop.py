@@ -1,16 +1,37 @@
+# ##### BEGIN MIT LICENSE BLOCK #####
+#
+# MIT License
+#
+# Copyright (c) 2025 Kendall Starr
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+# ##### END MIT LICENSE BLOCK #####
+
 
 import bpy
-
-#import math, bmesh # make marker
-#from math import *
-#from mathutils import Vector
-
 
 from .func import *
 
 class AddSphere(bpy.types.Operator):
     bl_idname = "object.add_sphere"
-    bl_label = "+ Sample Sphere      "
+    bl_label = "+ Sphere"
     bl_description = "Add a single Spawn Sphere object to the scene."
     
     def execute(self, context):
@@ -23,7 +44,7 @@ class AddSphere(bpy.types.Operator):
 
 class AddMarker(bpy.types.Operator):
     bl_idname = "object.add_marker"
-    bl_label = "+ Sample Marker      "
+    bl_label = "+ Marker"
     bl_description = "Add a single Spawn Marker object to the scene."
     
     def execute(self, context):
@@ -112,11 +133,9 @@ class PopulateSpawns(bpy.types.Operator):
             
             SampleSphere = MakeSphere(bout)
             SampleMarker = MakeMarker(bout)
-#            SampleSphere.hide_set(True) # they get deleted, no need to hide, but...
-#            SampleMarker.hide_set(True) # keeping this function for future reference
             
-            SlayerSpawns = {} # used only for counting the total
-            CTFSpawns = {}    # number of spawns at end of loop
+            SlayerSpawns = {} # used only for counting the
+            CTFSpawns = {}    # total number of spawns at end of loop
             
             slayerSpawnTypes = ['Slayer','All Games','All Except CTF','All Except Race And CTF']
             ctfSpawnTypes = ['CTF','All Games']
@@ -137,6 +156,7 @@ class PopulateSpawns(bpy.types.Operator):
                     NewSphere = SampleSphere.copy()
                     NewSphere.data = SampleSphere.data.copy()
                     NewSphere.location = Spawn.location
+                    NewSphere.rotation_euler = Spawn.rotation_euler
                     NewSphere.name = "SpawnSphere_"+n
                     NewSphere.data.name = "SpawnSphere_Mesh_"+n
                     
@@ -214,7 +234,12 @@ class PurgeOrphans(bpy.types.Operator):
             'Sample Marker',
             'SpawnSphere',
             'SpawnMarker',
-            'BSP_Mesh'
+            'BSP_Mesh',
+            'P1',
+            'P2',
+            'P3',
+            'P4',
+            'spartan'
         ]
         
         objects_removed = 0
@@ -228,7 +253,7 @@ class PurgeOrphans(bpy.types.Operator):
                         break
                 if delete_object:
                     objects_removed += 1
-                    bpy.data.objects.remove(object)                        
+                    bpy.data.objects.remove(object)                    
 
         meshes_removed = 0
         for block in bpy.data.meshes:

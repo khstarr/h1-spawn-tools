@@ -1,3 +1,29 @@
+# ##### BEGIN MIT LICENSE BLOCK #####
+#
+# MIT License
+#
+# Copyright (c) 2025 Kendall Starr
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+# ##### END MIT LICENSE BLOCK #####
+
 import sys, bpy
 from bpy.types import Operator
 
@@ -20,42 +46,42 @@ from io_scene_halo.global_functions import mesh_processing
 from io_scene_halo.misc import scale_models
 
 
-class SpawnScenery(Operator):
-    bl_idname = "object.spawn_scenery"
-    bl_label = "Spawn Scenery"
-    bl_description = "Place a spawn scenery item at every Slayer spawn."
-    
-    def execute(self, context):
+#class SpawnScenery(Operator): # not in use
+#    bl_idname = "object.spawn_scenery"
+#    bl_label = "Spawn Scenery"
+#    bl_description = "Place a spawn scenery item at every Slayer spawn."
+#    
+#    def execute(self, context):
 
-        print("hoping and trying and possibly placing scenery...")
-        
-        game_version = "halo1"
-        
-        # get_object_mesh stuff here:
-        script_folder_path = path.dirname(path.dirname(__file__))
-        p = path.join(script_folder_path, "resources")
-        p = bpy.utils.user_resource('SCRIPTS') + "\\addons\\halo_spawn_shop\\jms\\"
-        f = "jackal.jms"
-        filepath = p+f
-        
-        # dimensions aren't used unless item not found,
-        # then makes a box with these dimensions:
-        array_item = ("jackal", (2.66301, 8.74704, 17.708))
+#        print("hoping and trying and possibly placing scenery...")
+#        
+#        game_version = "halo1"
+#        
+#        # get_object_mesh stuff here:
+#        script_folder_path = path.dirname(path.dirname(__file__))
+#        p = path.join(script_folder_path, "resources")
+#        p = bpy.utils.user_resource('SCRIPTS') + "\\addons\\halo_spawn_shop\\jms\\"
+#        f = "jackal.jms"
+#        filepath = p+f
+#        
+#        # dimensions aren't used unless item not found,
+#        # then makes a box with these dimensions:
+#        array_item = ("jackal", (2.66301, 8.74704, 17.708))
 
-        # start from bottom:
-        mesh_processing.deselect_objects(context)
-        
-        # then create empty and select it
-        n = "" # needs to come from looping through spawn points (or spheres, during that operation).
-        # also, copy this mesh once created, don't generate every iteration in the loop.
-        object_name = "spawn_marker"+n
-        mesh = scale_models.generate_mesh(filepath, array_item, game_version)
-        print(mesh)
-        object_mesh = bpy.data.objects.new(object_name, mesh)
-        context.collection.objects.link(object_mesh)
-        object_mesh.select_set(True)
-        
-        return {"FINISHED"}
+#        # start from bottom:
+#        mesh_processing.deselect_objects(context)
+#        
+#        # then create empty and select it
+#        n = "" # needs to come from looping through spawn points (or spheres, during that operation).
+#        # also, copy this mesh once created, don't generate every iteration in the loop.
+#        object_name = "spawn_marker"+n
+#        mesh = scale_models.generate_mesh(filepath, array_item, game_version)
+#        print(mesh)
+#        object_mesh = bpy.data.objects.new(object_name, mesh)
+#        context.collection.objects.link(object_mesh)
+#        object_mesh.select_set(True)
+#        
+#        return {"FINISHED"}
 
 
 def update_sphere_opacity(self, context):
@@ -271,10 +297,8 @@ def MakeMarker(mat):
     return marker
 
 def register():
-    from bpy.utils import register_class
-    register_class(SpawnScenery)
-#    for cls in classes:
-#        register_class(cls)
+#    from bpy.utils import register_class
+#    register_class(SpawnScenery)
         
     bpy.types.Scene.sphere_detail = bpy.props.IntProperty( # need another option for inner sphere levels
         name = "",
@@ -294,8 +318,8 @@ def register():
 
 
 def unregister():
-    from bpy.utils import unregister_class
-    unregister_class(SpawnScenery)
+#    from bpy.utils import unregister_class
+#    unregister_class(SpawnScenery)
     
     del bpy.types.Scene.sphere_detail
     del bpy.types.Scene.sphere_color_enum
