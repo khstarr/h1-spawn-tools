@@ -24,6 +24,7 @@
 #
 # ##### END MIT LICENSE BLOCK #####
 
+
 import bpy
 from bpy.types import Panel
 from .func import update_sphere_color, update_sphere_opacity
