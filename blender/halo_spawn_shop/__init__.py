@@ -27,7 +27,7 @@
 bl_info = {
     "name": "Halo Spawn Shop",
     "author": "insidi0us",
-    "version": (0,8,0),
+    "version": (0,8,1),
     "blender": (4,3,2),
     "location": "View3D > Tool",
     "description": "Halo 1 spawn engine analysis tool.",
@@ -48,11 +48,11 @@ from . import op_spar
 from . import panel
 
 import importlib 
-# trick blender into reloading scripts:   .---------------------------.
-# uncomment "importlib.reload(error)" below, save this file           /
-# disable addon, enable addon, observe 'cause_error' not defined     /
-# then comment again, save this file, enable addon. profit.         /
-#                                                                  /
+# trick blender into reloading scripts:   .----------------------------.
+# uncomment "importlib.reload(error)" below, save this file            /
+# disable addon, enable addon, observe 'cause_error' not defined      /
+# then comment again, save this file, enable addon. profit.          /
+#                                                                   /
 #importlib.reload(cause_error) #  <---...__________________________/
 importlib.reload(func)
 importlib.reload(op_how)

@@ -27,13 +27,10 @@
 import sys, bpy
 from bpy.types import Operator
 
-
 # needed for making low-poly marker
 import math, bmesh
 from math import *
 from mathutils import Vector
-
-
 
 # needed for importing io_scene_halo, for injecting custom .jms
 from os import path
@@ -46,43 +43,25 @@ from io_scene_halo.global_functions import mesh_processing
 from io_scene_halo.misc import scale_models
 
 
-#class SpawnScenery(Operator): # not in use
-#    bl_idname = "object.spawn_scenery"
-#    bl_label = "Spawn Scenery"
-#    bl_description = "Place a spawn scenery item at every Slayer spawn."
-#    
-#    def execute(self, context):
-
-#        print("hoping and trying and possibly placing scenery...")
-#        
-#        game_version = "halo1"
-#        
-#        # get_object_mesh stuff here:
-#        script_folder_path = path.dirname(path.dirname(__file__))
-#        p = path.join(script_folder_path, "resources")
-#        p = bpy.utils.user_resource('SCRIPTS') + "\\addons\\halo_spawn_shop\\jms\\"
-#        f = "jackal.jms"
-#        filepath = p+f
-#        
-#        # dimensions aren't used unless item not found,
-#        # then makes a box with these dimensions:
-#        array_item = ("jackal", (2.66301, 8.74704, 17.708))
-
-#        # start from bottom:
-#        mesh_processing.deselect_objects(context)
-#        
-#        # then create empty and select it
-#        n = "" # needs to come from looping through spawn points (or spheres, during that operation).
-#        # also, copy this mesh once created, don't generate every iteration in the loop.
-#        object_name = "spawn_marker"+n
-#        mesh = scale_models.generate_mesh(filepath, array_item, game_version)
-#        print(mesh)
-#        object_mesh = bpy.data.objects.new(object_name, mesh)
-#        context.collection.objects.link(object_mesh)
-#        object_mesh.select_set(True)
-#        
-#        return {"FINISHED"}
-
+class WM_ShowError(Operator):
+    # needed for the respawn functions...
+    # maybe because they run after a timer?
+    bl_label = "Error:"
+    bl_idname = "wm.show_error"
+    
+    message: bpy.props.StringProperty()
+    wide: bpy.props.IntProperty(default=320)
+        
+    def draw(self, context):
+        layout = self.layout
+        layout.label(text=self.message)
+    
+    def execute(self, context):
+        return {"FINISHED"}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=self.wide)
+    
 
 def update_sphere_opacity(self, context):
 
@@ -91,6 +70,7 @@ def update_sphere_opacity(self, context):
         spawnmat = SS.data.materials[0]
         if spawnmat:
             spawnmat.node_tree.nodes["Principled BSDF.001"].inputs[4].default_value = bpy.context.scene.sphere_opacity
+
 
 def update_sphere_color(self, context):
 #    print("updating colors")
@@ -160,10 +140,11 @@ def MakeMat(matname,color):
         mat.node_tree.links.new(principled_bsdf.outputs['BSDF'], output_node.inputs['Surface'])
     return mat
 
+
 def MakeSphere(mat):
 
     # look for 'Spawn Shop'
-    SpawnShopCollection = bpy.context.scene.collection.children.get("Spawn Shop")
+    SpawnShopCollection = bpy.data.collections.get("Spawn Shop")
     if SpawnShopCollection:
         print("Spawn Shop collection already exists, which is good. Proceeding.")
     else:
@@ -224,10 +205,11 @@ def MakeSphere(mat):
     
     return sphere
 
+
 def MakeMarker(mat):
 
     # look for 'Spawn Shop'
-    SpawnShopCollection = bpy.context.scene.collection.children.get("Spawn Shop")
+    SpawnShopCollection = bpy.data.collections.get("Spawn Shop")
     if SpawnShopCollection:
         print("Spawn Shop collection already exists, which is good. Proceeding.")
     else:
@@ -296,9 +278,48 @@ def MakeMarker(mat):
     
     return marker
 
+
+
+#class SpawnScenery(Operator): # not in use
+#    bl_idname = "object.spawn_scenery"
+#    bl_label = "Spawn Scenery"
+#    bl_description = "Place a spawn scenery item at every Slayer spawn."
+#    
+#    def execute(self, context):
+
+#        print("hoping and trying and possibly placing scenery...")
+#        
+#        game_version = "halo1"
+#        
+#        # get_object_mesh stuff here:
+#        script_folder_path = path.dirname(path.dirname(__file__))
+#        p = path.join(script_folder_path, "resources")
+#        p = bpy.utils.user_resource('SCRIPTS') + "\\addons\\halo_spawn_shop\\jms\\"
+#        f = "jackal.jms"
+#        filepath = p+f
+#        
+#        # dimensions aren't used unless item not found,
+#        # then makes a box with these dimensions:
+#        array_item = ("jackal", (2.66301, 8.74704, 17.708))
+
+#        # start from bottom:
+#        mesh_processing.deselect_objects(context)
+#        
+#        # then create empty and select it
+#        n = "" # needs to come from looping through spawn points (or spheres, during that operation).
+#        # also, copy this mesh once created, don't generate every iteration in the loop.
+#        object_name = "spawn_marker"+n
+#        mesh = scale_models.generate_mesh(filepath, array_item, game_version)
+#        print(mesh)
+#        object_mesh = bpy.data.objects.new(object_name, mesh)
+#        context.collection.objects.link(object_mesh)
+#        object_mesh.select_set(True)
+#        
+#        return {"FINISHED"}
+
 def register():
-#    from bpy.utils import register_class
-#    register_class(SpawnScenery)
+    from bpy.utils import register_class
+    register_class(WM_ShowError)
         
     bpy.types.Scene.sphere_detail = bpy.props.IntProperty( # need another option for inner sphere levels
         name = "",
@@ -318,8 +339,8 @@ def register():
 
 
 def unregister():
-#    from bpy.utils import unregister_class
-#    unregister_class(SpawnScenery)
+    from bpy.utils import unregister_class
+    unregister_class(WM_ShowError)
     
     del bpy.types.Scene.sphere_detail
     del bpy.types.Scene.sphere_color_enum

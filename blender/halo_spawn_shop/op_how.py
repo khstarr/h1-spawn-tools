@@ -41,7 +41,7 @@ class HowTo(Operator):
 
 
 class WM_HowTo(Operator):
-    bl_label = "Spawn Shop v0.8.0 - Guide"
+    bl_label = "Spawn Shop v0.8.1 - Guide"
     bl_idname = "wm.howto"
         
     def draw(self, context):
@@ -54,7 +54,7 @@ class WM_HowTo(Operator):
         row.label(text="  This add-on assumes you've imported a Halo 1 scenario using the \"Halo-Asset-Blender-Development-Toolset\", or otherwise have")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  in your Scene a sealed BSP and a 'Player Starting Locations' (PSL) collection full of Slayer spawns. With that setup, clone your level")
+        row.label(text="  in your Scene a sealed BSP and a 'Player Starting Locations' (PSL) collection full of Slayer spawns. With that set up, clone your level")
         row = box.row()
         row.scale_y = 0.5
         row.label(text="  geometry, remove all glass, ladders, floating panels, and any other non-collision surfaces. Make sure the model is STL Checked")
@@ -69,7 +69,7 @@ class WM_HowTo(Operator):
         row.label(text="1. Shell The Map")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  Select your sealed BSP using the object picker and click the \"Shell Map\" button. This will clone your BSP again, turn it into a pink")
+        row.label(text="  Select your sealed BSP using the object picker and click the [Shell Map] button. This will clone your BSP again, turn it into a pink")
         row = box.row()
         row.scale_y = 0.5
         row.label(text="  skin covering all the surfaces, and place it in a new collection called 'Spawn Shop'.")
@@ -81,22 +81,22 @@ class WM_HowTo(Operator):
         row.label(text="2. Populate The Map")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  Spawn Spheres are necessary for calculating the randoms. If you're designing a new map, you can add a single Sphere (to see how")
+        row.label(text="  Spawn Spheres are necessary for calculating the randoms. If you're designing a new map, you can add single Spheres and Markers")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  the influence radius fits in your level) and a single Marker (to help identify a spawn's location and orientation). Link them to a spawn")
+        row.label(text="  (to see how the influence radius fits in your level, and to help identify a spawn's location and orientation), and link them to a spawn")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  point: select the sphere or marker first, then select a 'Player Starting Location', press CTRL+P, choose 'Object (Without Inverse)'.")
+        row.label(text="  point (select the sphere or marker first, then select a 'Player Starting Location', press CTRL+P, choose 'Object (Without Inverse)').")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  The sphere will adopt that spawn point's transform. If you've imported a map, or left this step until after placing spawn points,")
+        row.label(text="  The objects will adopt that spawn point's transform. If you've imported a map, or left this step until after placing spawn points,")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  click 'Populate All Spawns' to add and link Spheres and Markers to every PSL. If things get messy, delete the sphere and marker")
+        row.label(text="  click [Populate All Spawns] to add and link Spheres and Markers to every PSL. If things get messy, delete the created collections,")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  collections, click the 'Purge Orphans' button to clean up the leftover mesh, and start over.")
+        row.label(text="  click the [Purge Orphans </3] button to clean up the leftover mesh, and start over.")
         row = box.row()
         row.scale_y = 0.5
         
@@ -105,10 +105,10 @@ class WM_HowTo(Operator):
         row.label(text="3. Generate Randoms")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  With the above steps completed, click the \"Generate Randoms\" button. By default, the boolean operation will use 'Exact' mode, which can")
+        row.label(text="  With the above steps completed, click the [Generate Randoms] button. By default, this operation will use 'Exact' boolean, which can")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  take a couple minutes if your spheres are high-poly. 'Fast' mode has a habit of completely ignoring some spheres, so unless you're just")
+        row.label(text="  take a couple few if your spheres are high-detail. 'Fast' mode has a habit of ignoring some spheres, so unless you're just testing")
         row = box.row()
         row.scale_y = 0.5
         row.label(text="  the process, it's highly recommended to leave 'Exact' mode selected. Don't be alarmed if Blender stops responding during this step.")
@@ -123,7 +123,7 @@ class WM_HowTo(Operator):
         row.label(text="  If everything went well, you'll have transparent spheres and markers at every spawn point, and some pink surfaces depicting the")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  random zones. The last thing you need is a group of 4 Spartans to demonstrate Halo's spawn engine. Click the 'Generate Spartans'")
+        row.label(text="  random zones. The last thing you need is a group of 4 Spartans to demonstrate Halo's spawn engine. Click the [Generate Spartans]")
         row = box.row()
         row.scale_y = 0.5
         row.label(text="  button (next to 'Auto-respawn') to add 2 \"players\" to each team.")
@@ -134,13 +134,13 @@ class WM_HowTo(Operator):
         row.label(text="  Visualizing Spawn Prediction:")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  Manually hide P2 and P4 (or disable 'Auto-respawn' and 'kill' them with the provided ghost buttons), enable 'Real Time Prediction',")
+        row.label(text="    Manually hide P2 and P4 (or disable 'Auto-respawn' and 'kill' them with the provided ghost buttons), enable 'Real Time Prediction',")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  then move P1 and P3 around the map to see how the spheres and markers fade in and out. The more opaque, the more likely that")
+        row.label(text="    then move P1 and P3 around the map to see how the spheres and markers fade in and out. The more opaque, the more likely that")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  location will be chosen for a spawning teammate. Note: In prediction mode, only one team perspective can be used at a time.")
+        row.label(text="    spawn will be chosen for a teammate. Note: Only one team perspective can be used at a time.")
         row = box.row()
         row.scale_y = 0.5
         row = box.row()
@@ -148,13 +148,13 @@ class WM_HowTo(Operator):
         row.label(text="  Realistic Spawn Engine:")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  To see actual spawn selection in action, you can respawn the dead (hidden) players (with the provided 'Respawn' buttons) and")
+        row.label(text="    To see actual spawn selection in action, you can respawn the dead (hidden) players (with the provided 🗘 buttons) and watch")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  watch where they reappear. Use these features to get a full understanding of team and enemy spawn influence while designing")
+        row.label(text="    where they reappear. Use these features to get a full understanding of team and enemy spawn influence while designing new,")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  new, competitive 2v2 maps.")
+        row.label(text="    competitive 2v2 maps.")
         row = box.row()
         row.scale_y = 0.5
 #        row.label(text="  also 'kill' (with the provided ghost button) and respawn any player, to see how the actual game would select a")

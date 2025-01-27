@@ -46,7 +46,7 @@ class ShellMap(Operator):
             print("found map:",selected_bsp.name)
             
             # set up shop
-            SpawnShopCollection = bpy.context.scene.collection.children.get("Spawn Shop")
+            SpawnShopCollection = bpy.data.collections.get("Spawn Shop")
             
             if(SpawnShopCollection):
                 print("Spawn Shop container already exists!")

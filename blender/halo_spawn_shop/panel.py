@@ -30,7 +30,7 @@ from .func import update_sphere_color, update_sphere_opacity
 
 class VIEW_3D_PT_halo_spawn_shop(Panel):
         
-    bl_label = "Spawn Shop    v0.8.0"
+    bl_label = "Spawn Shop    v0.8.2"
     bl_idname = "OBJECT_PT_SpawnShop"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI" # Called with N key

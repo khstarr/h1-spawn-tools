@@ -30,6 +30,10 @@ import functools, random # real time tracking
 import math
 from math import *
 
+
+
+
+   
 def RespawnPlayer(player):
     
     s = 0
@@ -66,7 +70,7 @@ def RespawnPlayer(player):
         # choose a spawn!            
         if player == 1:
             bpy.context.scene.sec_p1 = 0
-            select_spawn_point(bpy.context.scene.player_1_select)
+            select_spawn_point(bpy.context.scene.player_1_select)  
         elif player == 2:
             bpy.context.scene.sec_p2 = 0
             select_spawn_point(bpy.context.scene.player_2_select)
@@ -87,18 +91,29 @@ def RespawnPlayer(player):
         # failed because "function is not registered".
         # weird. thought a timer would keep going.
 
-def select_spawn_point(player):#,SpawnSpheres,Spartans):
-#    print("choose a spawn point for:",player.name,len(SpawnSpheres.objects),"spheres",len(Spartans.items()),"spartans")
+
+    
+
+def select_spawn_point(Player):#,SpawnSpheres,Spartans):
+#    print("choose a spawn point for:",Player.name,len(SpawnSpheres.objects),"spheres",len(Spartans.items()),"spartans")
 
     SpawnSpheres = bpy.data.collections.get("Spawn Spheres")
 
     Spartans = get_selected_spartans()
         
     spawner_team = 'unknown'
-    if player == bpy.context.scene.player_1_select or player == bpy.context.scene.player_2_select:
+    if Player == bpy.context.scene.player_1_select or Player == bpy.context.scene.player_2_select:
         spawner_team = 'blue'
-    elif player == bpy.context.scene.player_3_select or player == bpy.context.scene.player_4_select:
+    elif Player == bpy.context.scene.player_3_select or Player == bpy.context.scene.player_4_select:
         spawner_team = 'red'
+        
+    if not SpawnSpheres:
+        bpy.ops.wm.show_error('INVOKE_DEFAULT',message="'Spawn Spheres' collection not found!")
+        return {"CANCELLED"}
+    
+    if len(SpawnSpheres.objects) == 0:
+        bpy.ops.wm.show_error('INVOKE_DEFAULT',message="'Spawn Spheres' collection is empty!")
+        return {"CANCELLED"}
 
     if len(Spartans) > 0:
         # LOOP THROUGH ALL SPAWNS
@@ -106,7 +121,8 @@ def select_spawn_point(player):#,SpawnSpheres,Spartans):
         for SS in SpawnSpheres.objects:
             distance_rating = 1.0
             friendly_bonus = 0.0
-            perspective = bpy.context.scene.perspective_enum.perspective # Future: if this is "Both", we need to loop through twice
+            # Future: if this is "Both", need to loop through two sets of spheres:
+            perspective = bpy.context.scene.perspective_enum.perspective
             # LOOP THROUGH ALL SPARTANS
             for teamplayer, Spartan in Spartans.items():
                 
@@ -116,7 +132,6 @@ def select_spawn_point(player):#,SpawnSpheres,Spartans):
                 
                 tp = teamplayer.split(".")
                 team = tp[0]
-#                player = tp[1]
                 
                 dist = (Spartan.location - SS.location).length
                 halo_distance = dist * 0.01 # world units
@@ -157,9 +172,11 @@ def select_spawn_point(player):#,SpawnSpheres,Spartans):
         loc = chosen[0].location
         rot = chosen[0].rotation_euler
         print("Chosen Spawn:",chosen[0].name,"at:",loc,"spin:",rot)
-        player.location = loc
-        player.rotation_euler = rot
-        player.hide_set(False)
+        Player.location = loc
+        Player.rotation_euler = rot
+        Player.hide_set(False)
+        bpy.ops.object.select_all(action='DESELECT')
+        Player.select_set(True)
             
     else:
         print("No spartans selected. Cannot calculate spawns. (This actually shouldn't even happen.)")
@@ -238,7 +255,7 @@ class SpawnSpartan(Operator):
     def execute(self, context):
         
         spawner = self.spawner
-        print("Spawn who?", str(self.spawner))
+        print("Respawning player", str(self.spawner))
 
         SpawnSpheres = bpy.data.collections.get("Spawn Spheres")
         Spartans = get_selected_spartans()
@@ -266,10 +283,9 @@ Adds 2 blue and 2 red Spartans to the map, spawning them the same way Halo would
 the Spawn Spheres populated and linked to said spawns)."""
     
     def execute(self, context):
-        print("Go ahead and generate the spartans now. Paint them. Select them.")
         
         # look for 'Spawn Shop' collection
-        SpawnShopCollection = bpy.context.scene.collection.children.get("Spawn Shop")
+        SpawnShopCollection = bpy.data.collections.get("Spawn Shop")
         if SpawnShopCollection:
             print("Spawn Shop collection already exists, which is good. Proceeding.")
         else:
@@ -293,7 +309,7 @@ the Spawn Spheres populated and linked to said spawns)."""
         else:
             SpartansCollection = bpy.data.collections.new("Spartans")
             SpawnShopCollection.children.link(SpartansCollection)
-            
+          
         # needed for importing io_scene_halo, for injecting custom .jms
         from os import path
         addon_directory = bpy.utils.user_resource('SCRIPTS') + "\\addons\\io_scene_halo"
@@ -306,6 +322,9 @@ the Spawn Spheres populated and linked to said spawns)."""
             from io_scene_halo.misc import scale_models
         except ValueError:
             self.report({"ERROR"},"Couldn't load 'io_scene_halo'! Check that it's in your (AppData) Blender addons folder.")
+            return {"CANCELLED"}
+        
+        print("Generating, painting, and spawning Spartans...")
         
         game_version = "halo1"
         
@@ -448,30 +467,30 @@ def GetSpartanMaterial(matname):
 #        return {"FINISHED"}
 
 
-def MakeSpartanMat(team):
-    print("making spartan mat!")
-    mat = bpy.data.materials.get(team+" Team")
-    if(mat):
-        print("Material already exists!")
-    else:
-        mat = bpy.data.materials.new(name=team+" Team")
-        mat.use_nodes = True
-        
-        col = (0,0,0,1) # black
-        
-        if team == 'Blue':
-            col = (0,0.239,1,1)
-        elif team == 'Red':
-            col = (0.8,0.04,0.04,1)
+#def MakeSpartanMat(team):
+#    print("Making spartan material...")
+#    mat = bpy.data.materials.get(team+" Team")
+#    if(mat):
+#        print("Material already exists!")
+#    else:
+#        mat = bpy.data.materials.new(name=team+" Team")
+#        mat.use_nodes = True
+#        
+#        col = (0,0,0,1) # black
+#        
+#        if team == 'Blue':
+#            col = (0,0.239,1,1)
+#        elif team == 'Red':
+#            col = (0.8,0.04,0.04,1)
 
-        # Create a Principled BSDF shader node
-        principled_bsdf = mat.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
-        principled_bsdf.inputs['Base Color'].default_value = col
+#        # Create a Principled BSDF shader node
+#        principled_bsdf = mat.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
+#        principled_bsdf.inputs['Base Color'].default_value = col
 
-        # Connect the Principled BSDF to the Material Output
-        output_node = mat.node_tree.nodes.get('Material Output')
-        mat.node_tree.links.new(principled_bsdf.outputs['BSDF'], output_node.inputs['Surface'])
-    return mat
+#        # Connect the Principled BSDF to the Material Output
+#        output_node = mat.node_tree.nodes.get('Material Output')
+#        mat.node_tree.links.new(principled_bsdf.outputs['BSDF'], output_node.inputs['Surface'])
+#    return mat
 
 def get_selected_spartans():
 
@@ -493,7 +512,7 @@ def get_selected_spartans():
     return Spartans
 
 
-def update_tracking_bool(self, context):
+def update_prediction_bool(self, context):
 
     SpawnSpheres = bpy.data.collections.get("Spawn Spheres")
 
@@ -700,7 +719,7 @@ def register():
         name = "Real Time Tracking",
         description = "Show and hide spawn markers and influence spheres\nbased on the locations of the selected Spartan objects.",
         default = False,
-        update = update_tracking_bool
+        update = update_prediction_bool
     )
 
 

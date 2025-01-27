@@ -82,7 +82,7 @@ class GenerateRandoms(Operator):
             
      
     def execute(self, context):       
-        print("Go get a coffee")
+        print("Go get a coffee.")
         bpy.ops.object.generate_randoms_confirm(sphere_detail=self.detail)
         return {"FINISHED"}
     
@@ -114,28 +114,31 @@ class GenerateRandomsConfirm(Operator):
         
         found = False
         
-        SpawnShopCollection = bpy.context.scene.collection.children.get("Spawn Shop")
-        SpawnSpheresCollection = SpawnShopCollection.children.get("Spawn Spheres")
+#        SpawnShopCollection = bpy.context.scene.collection.children.get("Spawn Shop")
+        SpawnShopCollection = bpy.data.collections.get("Spawn Shop")
+#        SpawnSpheresCollection = SpawnShopCollection.children.get("Spawn Spheres")
+        SpawnSpheresCollection = bpy.data.collections.get("Spawn Spheres")
         
-        required_collections = 2
-        found_collections = 0
+#        required_collections = 2
+#        found_collections = 0
         
-        if SpawnShopCollection is not None:
-            print("Spawn Shop collection already exists, which is good. Proceeding.")
-            found_collections += 1
-        else:
-            self.report({'ERROR'}, "Could not find 'Spawn Shop' collection!\nPlease run 'Shell Map' and 'Populate All Spawns' first.")
-        
-        if(SpawnSpheresCollection):
-            print("Spawn Spheres collection already exists. Proceeding.")
-            found_collections += 1
-        else:
-            self.report({'ERROR'}, "Could not find 'Spawn Spheres' collection!\nPlease run 'Shell Map' and 'Populate All Spawns' first.")
-            
-        if(found_collections == required_collections):
-            print("can proceed!")
-        else:
-            print("cannot proceed!")
+        # the confirm box should have already protected against these not being found        
+#        if SpawnShopCollection is not None:
+#            print("'Spawn Shop' collection already exists, which is good. Proceeding.")
+#            found_collections += 1
+#        else:
+#            self.report({'ERROR'}, "Could not find 'Spawn Shop' collection!\nPlease run 'Shell Map' and 'Populate All Spawns' first.")
+#        
+#        if(SpawnSpheresCollection):
+#            print("'Spawn Spheres' collection already exists. Proceeding.")
+#            found_collections += 1
+#        else:
+#            self.report({'ERROR'}, "Could not find 'Spawn Spheres' collection!\nPlease run 'Shell Map' and 'Populate All Spawns' first.")
+#            
+#        if(found_collections == required_collections):
+#            print("Found all collections. Can proceed.")
+#        else:
+#            print("Some collections missing. Cannot proceed.")
         
         shelled_bsp = None
         for obx in SpawnShopCollection.objects:
@@ -150,7 +153,8 @@ class GenerateRandomsConfirm(Operator):
         
         
         if(shelled_bsp is not None):
-            print("Found shelled!")            
+            print("Found shelled!")
+            bpy.ops.object.select_all(action='DESELECT')           
             found = True
             bpy.context.view_layer.objects.active = shelled_bsp
             shelled_bsp.select_set(True)
@@ -162,29 +166,8 @@ class GenerateRandomsConfirm(Operator):
             if(bpy.context.scene.apply_randoms_modifier):
                 bpy.ops.object.modifier_apply(modifier="Bootilt")
         else:
-            print("shelled_bsp == None. why?")
-#            SpawnShopCollection = bpy.context.scene.collection.children.get("Spawn Shop")
-#            
-#            if SpawnShopCollection is not None:
-#                for obj in SpawnShopCollection.objects:
-#                    if obj.name == "BSP.shell":
-#                        found = True
-#                        break
-#                if(found):
-#                    print("Found shelled in collection!")
-#                    bpy.context.view_layer.objects.active = shelled_bsp
-#                    shelled_bsp.select_set(True)
-#                    boo = shelled_bsp.modifiers.new("Bootilt","BOOLEAN")
-#                    boo.solver = quality
-#                    boo.operand_type = 'COLLECTION'
-#                    boo.collection = SpawnSpheresCollection
-#                    shelled_bsp.name = "BSP.shell.rand."+str(detail)
-##                    if(bpy.context.scene.apply_randoms_modifier):            # why is this
-##                        bpy.ops.object.modifier_apply(modifier="Bootilt")    # commented out?
-#                else:
-#                    self.report({'ERROR'}, "Could not find 'BSP.shell'! Did you forget to run 'Shell Map'?")
-#            else:
-            self.report({'ERROR'}, "Could not find 'Spawn Shop' collection!\nPlease run 'Shell Map' and 'Populate All Spawns' first.")
+#            print("BSP.shell not found.")
+            bpy.ops.wm.show_error('INVOKE_DEFAULT',message="'BSP.shell' not found! Please run [Shell Map] first.")
 
             
         
