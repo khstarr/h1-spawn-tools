@@ -26,9 +26,9 @@ Install the Halo Spawn Shop add-on by copying the */blender/halo_spawn_shop/* fo
 
 Expand the newly-added Spawn Shop widget in the Viewport and click on the *How To* button at the top of the interface for detailed instructions on the tool's capabilities:
 
-[*] **Place spawn "influence spheres" at each spawn point location:** this is useful for distancing spawn points correctly and for fine-tuning spawn placements for forced/random spawns.
-[*] **Generate the "random spawn" geometry:** this feature covers the map in a "shell" using the Solidify modifier, then uses a boolean operation based on the spawn "influence spheres" placed in the previous step in order to remove all areas of the shell geometry that are within the influence range of Slayer spawn points.
-[*] **Gameplay Simulation:** this feature allows level designers to simulate the game's spawn selection logic in real-time, with up to 2 players on each team. You can place "friendly" and "enemy" player reference models and move them around the scene, which changes the opacity of the spawn "influence spheres" (higher opacity = higher chance of the spawn point being selected).
+* **Place spawn "influence spheres" at each spawn point location:** this is useful for distancing spawn points correctly and for fine-tuning spawn placements for forced/random spawns.
+ **Generate the "random spawn" geometry:** this feature covers the map in a "shell" using the Solidify modifier, then uses a boolean operation based on the spawn "influence spheres" placed in the previous step in order to remove all areas of the shell geometry that are within the influence range of Slayer spawn points.
+ **Gameplay Simulation:** this feature allows level designers to simulate the game's spawn selection logic in real-time, with up to 2 players on each team. You can place "friendly" and "enemy" player reference models and move them around the scene, which changes the opacity of the spawn "influence spheres" (higher opacity = higher chance of the spawn point being selected).
 
 ## Inserting Spawn Marker Scenery in a Scenario Tag
 
@@ -44,9 +44,9 @@ When finished, simply exit the command line interface and verify the scenery obj
 
 # Acknowledgements
 
-[*] Halo Spawn Shop Blender add-on created by insidi0us
-[*] Batch script for injecting spawn marker scenery created by insidi0us
-[*] Custom spawn marker scenery created by stunt_man
-[*] Special thanks to General-101 for the [Halo Asset Blender Development Tools](https://github.com/General-101/Halo-Asset-Blender-Development-Toolset)
-[*] Special thanks to Snowy for [Invader](https://github.com/SnowyMouse/invader)
-[*] Special thanks to insidi0us, Mintograde and ChaosTheory for reverse-engineering the game's spawn selection logic
+* Halo Spawn Shop Blender add-on created by insidi0us
+* Batch script for injecting spawn marker scenery created by insidi0us
+* Custom spawn marker scenery created by stunt_man
+* Special thanks to General-101 for the [Halo Asset Blender Development Tools](https://github.com/General-101/Halo-Asset-Blender-Development-Toolset)
+* Special thanks to Snowy for [Invader](https://github.com/SnowyMouse/invader)
+* Special thanks to insidi0us, Mintograde and ChaosTheory for reverse-engineering the game's spawn selection logic
