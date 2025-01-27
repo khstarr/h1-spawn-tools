@@ -27,7 +27,7 @@
 bl_info = {
     "name": "Halo Spawn Shop",
     "author": "insidi0us",
-    "version": (0,8,2),
+    "version": (0,8,4),
     "blender": (4,3,2),
     "location": "View3D > Tool",
     "description": "Halo 1 spawn engine analysis tool.",

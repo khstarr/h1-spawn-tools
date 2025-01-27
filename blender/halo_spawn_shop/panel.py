@@ -30,7 +30,7 @@ from .func import update_sphere_color, update_sphere_opacity
 
 class VIEW_3D_PT_halo_spawn_shop(Panel):
         
-    bl_label = "Spawn Shop    v0.8.2"
+    bl_label = "Spawn Shop    v0.8.4"
     bl_idname = "OBJECT_PT_SpawnShop"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI" # Called with N key
@@ -69,9 +69,10 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
 # STEP 1
         header, panel = layout.panel("shpa", default_closed=False)
         header.label(text="Shell The Map")#, icon="EVENT_NDOF_BUTTON_1") # EVENT_NDOF_BUTTON_1 IPO_SINE EVENT_ONEKEY
-        header.scale_y = 1.25
+        header.operator("object.how_shell", text="", icon="QUESTION")
+#        header.scale_y = 1.25
         if panel:
-            panel.label(text="Select a good sealed BSP:")
+            panel.label(text="Select a sealed BSP:")
             panel.prop(context.scene, "bsp_select", text="")
             panel.prop(context.scene, "apply_solidify_modifier", text="Apply When Completed")
             panel.operator("object.shell_map", icon = "MOD_EDGESPLIT")
@@ -79,7 +80,8 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
 # STEP 2
         header, panel = layout.panel("sppa", default_closed=False)
         header.label(text="Populate The Map")#, icon="EVENT_NDOF_BUTTON_2") # EVENT_NDOF_BUTTON_2 IPO_QUAD EVENT_TWOKEY
-        header.scale_y = 1.25
+        header.operator("object.how_populate", text="", icon="QUESTION")
+#        header.scale_y = 1.25
         if panel:
             split = panel.split(factor=0.55)
             left = split.column()
@@ -108,7 +110,8 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
 # STEP 3    
         header, panel = layout.panel("rapa", default_closed=False)
         header.label(text="Randoms Geometry")#, icon="EVENT_NDOF_BUTTON_3") # EVENT_NDOF_BUTTON_3 IPO_CUBIC EVENT_THREEKEY
-        header.scale_y = 1.25
+        header.operator("object.how_randoms", text="", icon="QUESTION")
+#        header.scale_y = 1.25
         if panel:
             panel.prop(context.scene, "use_exact", text="Use 'Exact' Boolean")
             panel.prop(context.scene, "apply_randoms_modifier", text="Apply When Completed")
@@ -117,7 +120,8 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
 # STEP 4
         header, panel = layout.panel("inpa", default_closed=False)
         header.label(text="Gameplay Simulation")#, icon="EVENT_NDOF_BUTTON_4") # EVENT_NDOF_BUTTON_4 IPO_QUART EVENT_FOURKEY
-        header.scale_y = 1.25
+        header.operator("object.how_simulate", text="", icon="QUESTION")
+#        header.scale_y = 1.25
         if panel:
             
             row = panel.row()
