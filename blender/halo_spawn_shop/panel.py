@@ -27,11 +27,11 @@
 
 import bpy
 from bpy.types import Panel
-from .func import update_sphere_color, update_sphere_opacity
+from .func import update_sphere_color, update_sphere_opacity, update_marker_color, update_marker_opacity
 
 class VIEW_3D_PT_halo_spawn_shop(Panel):
         
-    bl_label = "Spawn Shop    v0.8.4"
+    bl_label = "Spawn Shop    v0.8.5"
     bl_idname = "OBJECT_PT_SpawnShop"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI" # Called with N key
@@ -84,21 +84,59 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
         header.operator("object.how_populate", text="", icon="QUESTION")
 #        header.scale_y = 1.25
         if panel:
-            split = panel.split(factor=0.55)
-            left = split.column()
-            right = split.column()
             
-            left.label(text="Color:")
-            right.prop(context.scene.sphere_color_enum, "sphere_color")
-            left.label(text="Opacity:")
-            right.prop(context.scene, "sphere_opacity", text="")
             
-            left.label(text="Sphere Detail:")
-            right.prop(context.scene, "sphere_detail", text="") # need to add this option for inner sphere
+            asp = panel.split(factor=0.25)
+            lab = asp.column()
+            lab.label(text="")
+            lab.label(text="Color")
+            lab.label(text="Opacity")
+            lab.label(text="Detail")
+            lab.label(text="Create:")
             
-            row = panel.row()                     
-            row.operator("object.add_marker", icon = "PMARKER_SEL") # PMARKER_ACT PMARKER_SEL
-            row.operator("object.add_sphere", icon = "MESH_CIRCLE")
+            rtt = asp.column()
+            rsp = rtt.split(factor=0.5)
+
+            mid = rsp.column()
+            mid.alignment = 'CENTER'
+            mid.label(text="  Spheres")
+            mid.prop(context.scene.sphere_color_enum, "sphere_color")
+            mid.prop(context.scene, "sphere_opacity", text="")
+            mid.prop(context.scene, "sphere_detail", text="")
+            mid.operator("object.add_sphere", text="+1", icon="MESH_CIRCLE")
+            
+            rig = rsp.column()
+            rig.alignment = 'CENTER'
+            rig.label(text="  Markers")
+            rig.prop(context.scene.marker_color_enum, "marker_color")
+            rig.prop(context.scene, "marker_opacity", text="")
+            rig.label(text="")
+            rig.operator("object.add_marker", text="+1", icon="PMARKER_SEL")
+            
+            
+            
+            
+#            split = panel.split(factor=0.6)
+#            left = split.column()
+#            right = split.column()
+#            
+#            
+#            left.label(text="Sphere Detail:")
+#            right.prop(context.scene, "sphere_detail", text="") # need to add this option for inner sphere
+#            
+#            left.label(text="Sphere Color:")
+#            right.prop(context.scene.sphere_color_enum, "sphere_color")
+#            
+#            left.label(text="Marker Color:")
+#            right.prop(context.scene.marker_color_enum, "marker_color")
+#            
+#            left.label(text="Opacity (both):")
+#            right.prop(context.scene, "sphere_opacity", text="")
+            
+            
+#            row = panel.row()                
+#            row.operator("object.add_marker", icon = "PMARKER_SEL") # PMARKER_ACT PMARKER_SEL
+#            row.operator("object.add_sphere", icon = "MESH_CIRCLE")
             # other icons: SHADING_RENDERED NODE_MATERIAL SHADING_RENDERED MESH_CIRCLE
             panel.operator("object.populate_spawns", icon = "POINTCLOUD_DATA")
             split = panel.split(factor=0.75)
@@ -114,7 +152,16 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
         header.operator("object.how_randoms", text="", icon="QUESTION")
 #        header.scale_y = 1.25
         if panel:
-            panel.prop(context.scene, "use_exact", text="Use 'Exact' Boolean")
+            
+            row = panel.row()
+            split = panel.split(factor=0.55)
+            left = split.column()
+            right = split.column()
+            left.label(text="Boolean solver:")
+            row = right.row()
+            row.prop(context.scene.boolean_solver_enum, "boolean_solver", expand=True)
+            
+#            panel.prop(context.scene, "use_exact", text="Use 'Exact' Boolean")
             panel.prop(context.scene, "apply_randoms_modifier", text="Apply When Completed")
             panel.operator("object.generate_randoms", icon = "HOLDOUT_ON")
 
@@ -216,14 +263,27 @@ class CustomProperties(bpy.types.PropertyGroup):
         name="",
         description="Select a color for the spawn spheres",
         items=[
-            ('red',"Red","Spheres will be a nice, transparent red."),
-            ('blue',"Blue","Spheres will be the superior blue color."),
+            ('red',"Red","Spheres will be red, like the blood of your enemies."),
+            ('blue',"Blue","Spheres will probably get top spawn."),
             ('green',"Green","Spheres will be good for the environment."),
             ('yellow',"Yellow","Spheres will be yellow. Like the sun."),
-            ('gray',"Gray","Spheres will be a neutral, dull, boring gray."),
-            ('black',"Black","Spheres will be transparent black (best for seeing through).")
+            ('gray',"Gray","Spheres will look like fog balls."),
+            ('black',"Black","Spheres will be great for seeing through.")
         ],
         update = update_sphere_color
+    )
+    
+    marker_color : bpy.props.EnumProperty(
+        name="",
+        description="Select a color for the spawn markers",
+        items=[ 
+            ('green',"Green","Markers will be good for the environment."),
+            ('yellow',"Yellow","Markers will look like bananas."),
+            ('gray',"Gray","Markers will stand out nicely."),
+            ('purple',"Purple","Markers will be loved by the Covenant."),
+            ('black',"Black","Markers will be hard to see.")
+        ],
+        update = update_marker_color
     )
     
     perspective : bpy.props.EnumProperty(
@@ -232,6 +292,15 @@ class CustomProperties(bpy.types.PropertyGroup):
         items=[
             ('blue','Blue',"Show spawn spheres from blue's perspective."),
             ('red',"Red","Show spawn spheres from red's perspective.")
+        ]
+    )
+    
+    boolean_solver : bpy.props.EnumProperty(
+        name="Solver",
+        description="Select a solver for the boolean operation. 'Exact' is slow, 'Fast' is inaccurate.",
+        items=[
+            ('FAST','Fast',"Use 'Fast' when running the boolean modifier to cut spheres from shell."),
+            ('EXACT','Exact',"Use 'Exact' when running the boolean modifier to cut spheres from shell.")
         ]
     )
         
@@ -250,8 +319,14 @@ def register():
     
     bpy.types.Scene.sphere_color_enum = bpy.props.PointerProperty(
         type = CustomProperties,
-        name = "Colorizer",
-        description = "Color selector for spheres and markers"
+        name = "SphereColorizer",
+        description = "Color selector for spheres"
+    )
+    
+    bpy.types.Scene.marker_color_enum = bpy.props.PointerProperty(
+        type = CustomProperties,
+        name = "MarkerColorizer",
+        description = "Color selector for markers"
     )
     
     bpy.types.Scene.perspective_enum = bpy.props.PointerProperty(
@@ -259,9 +334,20 @@ def register():
         name = "Team Perspective",
         description = "Spawn influence team perspective"
     )
+    
+    bpy.types.Scene.boolean_solver_enum = bpy.props.PointerProperty(
+        type = CustomProperties,
+        name = "Boolean Solver",
+        description = "Randoms generation boolean solver method"
+    )
 
 
 def unregister():
     from bpy.utils import unregister_class
     for cls in classes:
         unregister_class(cls)
+
+    del bpy.types.Scene.sphere_color_enum
+    del bpy.types.Scene.marker_color_enum
+    del bpy.types.Scene.perspective_enum
+    del bpy.types.Scene.boolean_solver_enum

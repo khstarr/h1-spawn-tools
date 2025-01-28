@@ -67,9 +67,18 @@ def update_sphere_opacity(self, context):
 
     SpawnSpheres = bpy.data.collections.get("Spawn Spheres")
     for SS in SpawnSpheres.objects:
-        spawnmat = SS.data.materials[0]
-        if spawnmat:
-            spawnmat.node_tree.nodes["Principled BSDF.001"].inputs[4].default_value = bpy.context.scene.sphere_opacity
+        spheremat = SS.data.materials[0]
+        if spheremat:
+            spheremat.node_tree.nodes["Principled BSDF.001"].inputs[4].default_value = bpy.context.scene.sphere_opacity  
+
+
+def update_marker_opacity(self, context):
+
+    SpawnMarkers = bpy.data.collections.get("Spawn Markers")
+    for SM in SpawnMarkers.objects:
+        markermat = SM.data.materials[0]
+        if markermat:
+            markermat.node_tree.nodes["Principled BSDF.001"].inputs[4].default_value = bpy.context.scene.marker_opacity
 
 
 def update_sphere_color(self, context):
@@ -86,25 +95,55 @@ def update_sphere_color(self, context):
     elif color == 'yellow':
         col = (1,1,0,1)
     elif color == 'gray':
-        col = (0.5,0.5,0.5,1)
+        col = (0.5,0.5,0.5,1.0)
     elif color == 'black':
         col = (0,0,0,1)
     
-    spawn_mat = MakeMat("SpawnMat_",color)
+    spheremat = MakeMat("SphereMat_",color)
     
     # do the samples also
     for o in bpy.data.objects:
-        if "Sample Marker" in o.name or "Sample Sphere" in o.name:
-            o.data.materials[0] = spawn_mat
+        if "Sample Sphere" in o.name:
+            o.data.materials[0] = spheremat
             o.data.materials[0].surface_render_method = 'BLENDED'
 
     SpawnSpheres = bpy.data.collections.get("Spawn Spheres")
     if(SpawnSpheres):
         for SS in SpawnSpheres.objects:
-            spawnmat = SS.data.materials[0]
-            if spawnmat:
-                spawnmat.node_tree.nodes["Principled BSDF.001"].inputs[0].default_value = col
+            spheremat = SS.data.materials[0]
+            if spheremat:
+                spheremat.node_tree.nodes["Principled BSDF.001"].inputs[0].default_value = col
 
+
+def update_marker_color(self, context):
+    color = bpy.context.scene.marker_color_enum.marker_color
+    col = (0,0,0,1) # black
+        
+    if color == 'green':
+        col = (0,1,0,1)
+    elif color == 'yellow':
+        col = (1,1,0,1)
+    elif color == 'gray':
+        col = (1,1,0,1)
+    elif color == 'purple':
+        col = (0.5,0.0,0.8,1.0)
+    elif color == 'black':
+        col = (0,0,0,1)
+    
+    markermat = MakeMat("MarkerMat_",color)
+    
+    # do the samples also
+    for o in bpy.data.objects:
+        if "Sample Marker" in o.name:
+            o.data.materials[0] = markermat
+            o.data.materials[0].surface_render_method = 'BLENDED'
+
+    SpawnMarkers = bpy.data.collections.get("Spawn Markers")
+    if(SpawnMarkers):
+        for SM in SpawnMarkers.objects:
+            markermat = SM.data.materials[0]
+            if markermat:
+                markermat.node_tree.nodes["Principled BSDF.001"].inputs[0].default_value = col
 
 def MakeMat(matname,color):
     print("Making"+color+"material!")
@@ -134,6 +173,7 @@ def MakeMat(matname,color):
         principled_bsdf = mat.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
         principled_bsdf.inputs['Base Color'].default_value = col
         principled_bsdf.inputs['Alpha'].default_value = bpy.context.scene.sphere_opacity # Transparency
+        # future: need another function for marker?
 
         # Connect the Principled BSDF to the Material Output
         output_node = mat.node_tree.nodes.get('Material Output')
@@ -330,11 +370,19 @@ def register():
     )
     bpy.types.Scene.sphere_opacity = bpy.props.FloatProperty(
         name = "",
-        description = "Range: 0.2-0.8\nDefault: 0.4\n\nSet the opacity for spawn\nspheres and markers.",
+        description = "Range: 0.2-0.8\nDefault: 0.4\n\nSet the opacity for spawn spheres.",
         default = 0.4,
         min = 0.2,
         max = 0.8,
         update = update_sphere_opacity
+    )
+    bpy.types.Scene.marker_opacity = bpy.props.FloatProperty(
+        name = "",
+        description = "Range: 0.2-0.8\nDefault: 0.4\n\nSet the opacity for spawn markers.",
+        default = 0.4,
+        min = 0.2,
+        max = 0.8,
+        update = update_marker_opacity
     )
 
 
@@ -343,4 +391,5 @@ def unregister():
     unregister_class(WM_ShowError)
     
     del bpy.types.Scene.sphere_detail
-    del bpy.types.Scene.sphere_color_enum
+    del bpy.types.Scene.sphere_opacity
+    del bpy.types.Scene.marker_opacity

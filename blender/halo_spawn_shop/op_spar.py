@@ -94,10 +94,18 @@ def RespawnPlayer(player):
 
     
 
-def select_spawn_point(Player):#,SpawnSpheres,Spartans):
-#    print("choose a spawn point for:",Player.name,len(SpawnSpheres.objects),"spheres",len(Spartans.items()),"spartans")
-
-    SpawnSpheres = bpy.data.collections.get("Spawn Spheres")
+def select_spawn_point(Player):
+    
+    PSLs = {}
+    PSL = bpy.data.collections.get("Player Starting Locations") 
+    if PSL:
+        slayer_count = 0
+        slayerSpawnIndices = ['2','12','13','14']
+        for Spawn in PSL.objects:
+            if Spawn.tag_player_starting_location.type_0 in slayerSpawnIndices:
+                slayer_count += 1
+                n = Spawn.name.split("_")[1]
+                PSLs[n] = Spawn
 
     Spartans = get_selected_spartans()
         
@@ -106,19 +114,15 @@ def select_spawn_point(Player):#,SpawnSpheres,Spartans):
         spawner_team = 'blue'
     elif Player == bpy.context.scene.player_3_select or Player == bpy.context.scene.player_4_select:
         spawner_team = 'red'
-        
-    if not SpawnSpheres:
-        bpy.ops.wm.show_error('INVOKE_DEFAULT',message="'Spawn Spheres' collection not found!")
-        return {"CANCELLED"}
-    
-    if len(SpawnSpheres.objects) == 0:
-        bpy.ops.wm.show_error('INVOKE_DEFAULT',message="'Spawn Spheres' collection is empty!")
+
+    if len(PSLs.items()) == 0:
+        bpy.ops.wm.show_error('INVOKE_DEFAULT',message="No Player Starting Locations found!")
         return {"CANCELLED"}
 
     if len(Spartans) > 0:
         # LOOP THROUGH ALL SPAWNS
         SpawnWeights = {}
-        for SS in SpawnSpheres.objects:
+        for n, PSL in PSLs.items():
             distance_rating = 1.0
             friendly_bonus = 0.0
             # Future: if this is "Both", need to loop through two sets of spheres:
@@ -133,7 +137,7 @@ def select_spawn_point(Player):#,SpawnSpheres,Spartans):
                 tp = teamplayer.split(".")
                 team = tp[0]
                 
-                dist = (Spartan.location - SS.location).length
+                dist = (Spartan.location - PSL.location).length
                 halo_distance = dist * 0.01 # world units
                 
                 # TEAM OR ENEMY BLOCKING
@@ -162,11 +166,10 @@ def select_spawn_point(Player):#,SpawnSpheres,Spartans):
             friendly_bonus = (friendly_bonus * 3.0) + 1.0   # thus, max is 10
             rand = random.uniform(0.0,1.0)
             spawn_weight = distance_rating * friendly_bonus * math.sqrt(rand)
-            
-            SpawnWeights[SS] = spawn_weight
+            SpawnWeights[PSL] = spawn_weight
         
         for ss, weight in SpawnWeights.items():
-            print(ss.name,"Weight:",weight)
+            print(ss.name,"---> Weight:",weight)
 
         chosen = get_highest_weight(SpawnWeights)
         loc = chosen[0].location
@@ -513,8 +516,26 @@ def get_selected_spartans():
 
 
 def update_prediction_bool(self, context):
+    
 
     SpawnSpheres = bpy.data.collections.get("Spawn Spheres")
+    SpawnMarkers = bpy.data.collections.get("Spawn Markers")
+    
+    if bpy.context.scene.prediction:
+        if not SpawnSpheres and not SpawnMarkers:
+            bpy.ops.wm.show_error('INVOKE_DEFAULT',message="Need spheres or markers to display predictions!")
+            return {"CANCELLED"}
+        
+    PSLs = {}
+    PSL = bpy.data.collections.get("Player Starting Locations")
+    if PSL:
+        slayer_count = 0
+        slayerSpawnIndices = ['2','12','13','14']
+        for Spawn in PSL.objects:
+            if Spawn.tag_player_starting_location.type_0 in slayerSpawnIndices:
+                slayer_count += 1
+                n = Spawn.name.split("_")[1]
+                PSLs[n] = Spawn
 
     # Check if user wants to track spartans, begin timer if so
     if bpy.context.scene.prediction:
@@ -522,18 +543,25 @@ def update_prediction_bool(self, context):
         Spartans = get_selected_spartans()
             
         try:
-            bpy.app.timers.register(functools.partial(TrackingLoop, SpawnSpheres, Spartans))
+            bpy.app.timers.register(functools.partial(TrackingLoop, PSLs, Spartans))
         except ValueError:
             print("Couldn't start the tracker.")
         
     else:
         print("Stopped tracking spartans.")
         
-        # turn all bubbles back on
-        for SS in SpawnSpheres.objects:
-            spawnmat = SS.data.materials[0]
-            if spawnmat:
-                spawnmat.node_tree.nodes["Principled BSDF.001"].inputs[4].default_value = bpy.context.scene.sphere_opacity
+        # turn all spheres and markers back on, if exist
+        if SpawnSpheres:
+            for SS in SpawnSpheres.objects:
+                spheremat = SS.data.materials[0]
+                if spheremat:
+                    spheremat.node_tree.nodes["Principled BSDF.001"].inputs[4].default_value = bpy.context.scene.sphere_opacity
+        if SpawnMarkers:
+            for SM in SpawnMarkers.objects:
+                markermat = SM.data.materials[0]
+                if markermat:
+                    markermat.node_tree.nodes["Principled BSDF.001"].inputs[4].default_value = bpy.context.scene.marker_opacity
+                
         try:
             bpy.app.timers.unregister(TrackingLoop)
         except ValueError:
@@ -550,20 +578,38 @@ def update_tracking(self, context):
         bpy.app.timers.register(reenable_tracking, first_interval=0.01) # needs to be a delay, 
         # otherwise this one doesn't cancel and two timers run at once
 
-def TrackingLoop(SpawnSpheres, Spartans):
+def TrackingLoop(PSLs, Spartans):
     
     if(bpy.context.scene.prediction):
         
         if len(Spartans) > 0:
-            # LOOP THROUGH ALL SPAWNS
-            for SS in SpawnSpheres.objects:
-                spawnmat = SS.data.materials[0]
-                if(spawnmat):    
-                    alpha = 0
+            
+#            markermat = None
+#            for SM in SpawnMarkers.objects:
+#                markermat = SM.data.materials[0]
+#                if markermat:
+#                    break
+
+            # LOOP THROUGH ALL Player Starting Locations:
+            for n, PSL in PSLs.items():
+                
+                # if this PSL has spheres or markers attached:
+                if len(PSL.children) > 0:
+                    
+                    # set the initial material and alpha for the discovered objects
+                    for child in PSL.children:
+                        if 'SpawnSphere' in child.name:
+                            sphere_alpha = 0
+                            spheremat = child.data.materials[0]
+                        if 'SpawnMarker' in child.name:
+                            marker_alpha = 0
+                            markermat = child.data.materials[0]
+                    
+                    # calculate this spawn location, regardless of sphere or marker presence
                     distance_rating = 1.0
                     friendly_bonus = 0.0
-                    # Future: if this is "Both", we need to loop through twice:
-                    # (or two sets of spheres. eek.)
+                    # Future: if this is "Both", we'll need another set of spheres attached to each PSL,
+                    # much like the markers, but team color will need to be provided in the name (I think?)
                     perspective = bpy.context.scene.perspective_enum.perspective
                     # LOOP THROUGH ALL SPARTANS
                     for teamplayer, Spartan in Spartans.items():
@@ -576,7 +622,7 @@ def TrackingLoop(SpawnSpheres, Spartans):
                         team = tp[0]
                         player = tp[1]
                         
-                        dist = (Spartan.location - SS.location).length
+                        dist = (Spartan.location - PSL.location).length
                         halo_distance = dist * 0.01
                         
                         # TEAM OR ENEMY BLOCKING
@@ -607,19 +653,24 @@ def TrackingLoop(SpawnSpheres, Spartans):
                     spawn_weight = distance_rating * friendly_bonus # * math.sqrt(rand) # removed because we aren't choosing a spawn,
                                                                                         # just showing available spawns
                     if spawn_weight == 1:
-                        alpha = 0.01
+                        sphere_alpha = 0.01
                     elif spawn_weight > 1:
-                        alpha = (spawn_weight / 3) * bpy.context.scene.sphere_opacity
+                        sphere_alpha = (spawn_weight / 3) * bpy.context.scene.sphere_opacity
+                        marker_alpha = (spawn_weight / 3) * bpy.context.scene.marker_opacity
                         # spawn_weight / 3 is not exactly correct, but close
                         # enough for visualization because spawn weight won't
                         # go much over 3 with a single teammate.
-                        if alpha > bpy.context.scene.sphere_opacity:
-                            alpha = bpy.context.scene.sphere_opacity
+                        if sphere_alpha > bpy.context.scene.sphere_opacity:
+                            sphere_alpha = bpy.context.scene.sphere_opacity
+                            
+                        if marker_alpha > bpy.context.scene.marker_opacity:
+                            marker_alpha = bpy.context.scene.marker_opacity
                     
-#                    if SS.name == "SpawnSphere_11": # debug - was making sure the teammate block distance was correct. it was.
-#                        print("distance:",halo_distance,"distance rating:",distance_rating,"alpha:",alpha)
-                        
-                    spawnmat.node_tree.nodes["Principled BSDF.001"].inputs[4].default_value = alpha
+                    if spheremat:
+                        spheremat.node_tree.nodes["Principled BSDF.001"].inputs[4].default_value = sphere_alpha
+    
+                    if markermat:
+                        markermat.node_tree.nodes["Principled BSDF.001"].inputs[4].default_value = marker_alpha
                                 
             return bpy.context.scene.spawn_refresh_rate # tells the timer how quickly to run again
         else:

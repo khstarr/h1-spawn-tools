@@ -37,7 +37,7 @@ class AddSphere(bpy.types.Operator):
     def execute(self, context):
         # Create a new material (if necessary) and new sphere
         color = bpy.context.scene.sphere_color_enum.sphere_color
-        bout = MakeMat("SpawnMat_",color)
+        bout = MakeMat("SphereMat_",color)
         MakeSphere(bout)
         
         return {"FINISHED"}    
@@ -58,8 +58,8 @@ class AddMarker(bpy.types.Operator):
             print("'Sample Marker' not found. Creating...")
             
             # Create a new material and new marker
-            color = bpy.context.scene.sphere_color_enum.sphere_color
-            bout = MakeMat("SpawnMat_",color)
+            color = bpy.context.scene.marker_color_enum.marker_color
+            bout = MakeMat("MarkerMat_",color)
             MakeMarker(bout)
         
         return {"FINISHED"}
@@ -138,13 +138,16 @@ class PopulateSpawns(bpy.types.Operator):
             slayer_count = 0
             ctf_count = 0
 
-            color = bpy.context.scene.sphere_color_enum.sphere_color
-            bout = MakeMat("SpawnMat_",color)
+            sphere_color = bpy.context.scene.sphere_color_enum.sphere_color
+            marker_color = bpy.context.scene.marker_color_enum.marker_color
+            
+            bout = MakeMat("SphereMat_",sphere_color)
+            markmat = MakeMat("MarkerMat_",marker_color)
             
             if make_spheres:
                 SampleSphere = MakeSphere(bout)
             if make_markers:
-                SampleMarker = MakeMarker(bout)
+                SampleMarker = MakeMarker(markmat)
             
             SlayerSpawns = {} # used only for counting the
             CTFSpawns = {}    # total number of spawns at end of loop
@@ -173,10 +176,10 @@ class PopulateSpawns(bpy.types.Operator):
                         NewSphere.data.name = "SpawnSphere_Mesh_"+n
                         
                         dupmat = bout.copy()
-                        existing = bpy.data.materials.get("SpawnMat_"+n)
+                        existing = bpy.data.materials.get("SphereMat_"+n)
                         if existing:
                             bpy.data.materials.remove(existing)
-                        dupmat.name = "SpawnMat_"+n
+                        dupmat.name = "SphereMat_"+n
                         NewSphere.data.materials[0] = dupmat
 
                         # ADD SPHERE TO 'Spawn Spheres' COLLECTION, UNLINK FROM 'Scene Collection'
@@ -197,6 +200,11 @@ class PopulateSpawns(bpy.types.Operator):
                         NewMarker.name = "SpawnMarker_"+n
                         NewMarker.data.name = "SpawnMarker_Mesh_"+n
                         
+                        dupmat = markmat.copy()
+                        existing = bpy.data.materials.get("MarkerMat_"+n)
+                        if existing:
+                            bpy.data.materials.remove(existing)
+                        dupmat.name = "MarkerMat_"+n
                         NewMarker.data.materials[0] = dupmat
                         
                         # MOVE SPAWN MARKER TO 'Spawn Markers' COLLECTION, UNLINK FROM 'Scene Collection'
@@ -289,7 +297,7 @@ class PurgeOrphans(bpy.types.Operator):
         materials_removed = 0
         for material in bpy.data.materials:
             if material.users == 0:
-                if "SpawnMat" in material.name or "PinkShell" in material.name:
+                if "SphereMat" in material.name or "MarkerMat" in material.name or "PinkShell" in material.name:
                     materials_removed += 1
                     bpy.data.materials.remove(material)
         

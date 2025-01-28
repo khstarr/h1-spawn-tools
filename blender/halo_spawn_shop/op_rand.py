@@ -147,9 +147,9 @@ class GenerateRandomsConfirm(Operator):
                 obx.select_set(True)
                 shelled_bsp = obx
                 
-        quality = 'FAST'
-        if(bpy.context.scene.use_exact):
-            quality = 'EXACT'
+        quality = bpy.context.scene.boolean_solver_enum.boolean_solver
+#        if(bpy.context.scene.use_exact):
+#            quality = 'EXACT'
         
         
         if(shelled_bsp is not None):
@@ -191,11 +191,11 @@ def register():
         description = "Apply the modifier when the boolean operation\ncompletes, or leave unchecked to tweak settings.",
         default = True
     )
-    bpy.types.Scene.use_exact = bpy.props.BoolProperty(
-        name = "Exact",
-        description = "Uncheck for testing in 'Fast' mode, which\nis much quicker, but notably unreliable.",
-        default = True
-    )
+#    bpy.types.Scene.use_exact = bpy.props.BoolProperty(
+#        name = "Exact",
+#        description = "Uncheck for testing in 'Fast' mode, which\nis much quicker, but notably unreliable.",
+#        default = True
+#    )
 
 def unregister():
     from bpy.utils import unregister_class
@@ -203,4 +203,4 @@ def unregister():
         unregister_class(cls)
         
     del bpy.types.Scene.apply_randoms_modifier
-    del bpy.types.Scene.use_exact
+#    del bpy.types.Scene.use_exact

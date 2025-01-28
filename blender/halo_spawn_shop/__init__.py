@@ -27,12 +27,12 @@
 bl_info = {
     "name": "Halo Spawn Shop",
     "author": "insidi0us",
-    "version": (0,8,4),
+    "version": (0,8,5),
     "blender": (4,3,2),
     "location": "View3D > Tool",
     "description": "Halo 1 spawn engine analysis tool.",
     "doc_url": "https://github.com/khstarr/h1-spawn-tools",
-    "tracker_url": "",
+#    "tracker_url": "",
     "category": "Add Mesh",
 }
 
@@ -61,7 +61,7 @@ importlib.reload(op_pop)
 importlib.reload(op_rand)
 importlib.reload(op_spar)
 importlib.reload(panel)
-
+#
 
 # =========================================================================
 # Registration:
