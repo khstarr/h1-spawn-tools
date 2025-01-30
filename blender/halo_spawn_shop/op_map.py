@@ -96,11 +96,17 @@ class ShellMap(Operator):
             
             pink = bpy.data.materials.new(name="PinkShell")
             pink.use_nodes = True
-            prin = pink.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
-            prin.inputs['Base Color'].default_value = (1, 0.2, 0.9, 1) # Pink color
-            prin.inputs['Alpha'].default_value = 0.25 # Transparency
-            mo = pink.node_tree.nodes.get('Material Output')
-            pink.node_tree.links.new(prin.outputs['BSDF'], mo.inputs['Surface'])
+            
+            ntree = pink.node_tree
+            bsdf = ntree.nodes.get("Principled BSDF", None)
+            if bsdf is None:
+                bsdf = pink.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
+                
+            bsdf = pink.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
+            bsdf.inputs['Base Color'].default_value = (1, 0.2, 0.9, 1) # Pink color
+            bsdf.inputs['Alpha'].default_value = 0.25 # Transparency
+            output = pink.node_tree.nodes.get('Material Output')
+            pink.node_tree.links.new(bsdf.outputs['BSDF'], output.inputs['Surface'])
 
             shelled.data.materials.append(pink)
             
@@ -112,6 +118,8 @@ class ShellMap(Operator):
             # MOVE CLONED / SHELLED MAP TO Spawn Shop
             bpy.context.scene.collection.objects.unlink(clone)
             SpawnShopCollection.objects.link(clone)
+            bpy.context.scene.shell_select = clone
+            
         else:
             self.report({'ERROR'}, "Please select a BSP!")
             

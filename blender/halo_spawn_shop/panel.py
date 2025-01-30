@@ -31,7 +31,7 @@ from .func import update_sphere_color, update_sphere_opacity, update_marker_colo
 
 class VIEW_3D_PT_halo_spawn_shop(Panel):
         
-    bl_label = "Spawn Shop    v0.8.5"
+    bl_label = "Spawn Shop    v0.8.6"
     bl_idname = "OBJECT_PT_SpawnShop"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI" # Called with N key
@@ -48,6 +48,8 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
         5:"EVENT_FIVEKEY",
         10:"EVENT_NDOF_BUTTON_10"
         }
+        
+    slayer_spawn_count = 0
 
     def draw(self, context):
         layout = self.layout
@@ -66,11 +68,13 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
         row = layout.row()
         row.operator("object.how_to",icon="QUESTION")
         row = layout.row()
+#        row.operator("object.spawn_marker_nhe",icon="SNAP_NORMAL") # SNAP_NORMAL FRAME_NEXT
+#        row = layout.row()
 
 # STEP 1
         header, panel = layout.panel("shpa", default_closed=False)
         header.label(text="Shell The Map")#, icon="EVENT_NDOF_BUTTON_1") # EVENT_NDOF_BUTTON_1 IPO_SINE EVENT_ONEKEY
-        header.operator("object.how_shell", text="", icon="QUESTION")
+        header.operator("object.how_shell", text="", icon="INFO") # INFO_LARGE
 #        header.scale_y = 1.25
         if panel:
             panel.label(text="Select a sealed BSP:")
@@ -81,37 +85,52 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
 # STEP 2
         header, panel = layout.panel("sppa", default_closed=False)
         header.label(text="Populate The Map")#, icon="EVENT_NDOF_BUTTON_2") # EVENT_NDOF_BUTTON_2 IPO_QUAD EVENT_TWOKEY
-        header.operator("object.how_populate", text="", icon="QUESTION")
+        header.operator("object.how_populate", text="", icon="INFO") # INFO_LARGE
 #        header.scale_y = 1.25
         if panel:
             
+            # sphere detail written
+            split = panel.split(factor=0.75)
+            left = split.column()
+            right = split.column()
+            left.label(icon="KEY_RING", text="Outer Detail:") # KEY_RING
+            left.label(text="Inner Detail:", icon="LAYER_USED") # LAYER_USED
+            right.prop(context.scene, "sphere_detail_outer", text="") # need to add this option for inner sphere
+            right.prop(context.scene, "sphere_detail_inner", text="") # need to add this option for inner sphere
             
-            asp = panel.split(factor=0.25)
+            
+            # tri column with icons
+            asp = panel.split(factor=0.12) # opacity XRAY OBJECT_HIDDEN color RESTRICT_COLOR_OFF COLOR RESTRICT_COLOR_ON
             lab = asp.column()
             lab.label(text="")
-            lab.label(text="Color")
-            lab.label(text="Opacity")
-            lab.label(text="Detail")
-            lab.label(text="Create:")
-            
+            lab.label(text="", icon="RESTRICT_COLOR_ON")
+            lab.label(text="", icon="XRAY")
+            lab.operator("object.count_spawns", text="", icon="LINENUMBERS_ON") # GEOMETRY_NODES LINENUMBERS_ON
+            #lab.prop(context.scene, "sphere_detail", text="")
             rtt = asp.column()
             rsp = rtt.split(factor=0.5)
-
-            mid = rsp.column()
-            mid.alignment = 'CENTER'
-            mid.label(text="  Spheres")
-            mid.prop(context.scene.sphere_color_enum, "sphere_color")
-            mid.prop(context.scene, "sphere_opacity", text="")
-            mid.prop(context.scene, "sphere_detail", text="")
-            mid.operator("object.add_sphere", text="+1", icon="MESH_CIRCLE")
+            lab = rsp.column()
+            lab.label(text="Spheres")
+            lab.prop(context.scene.sphere_color_enum, "sphere_color")
+            lab.prop(context.scene, "sphere_opacity", text="")
+            lab.operator("object.add_sphere", text="Add 1", icon="MESH_CIRCLE")
+            #mid.label(text="", icon="MESH_ICOSPHERE")
+            lab = rsp.column()
+            lab.label(text="  Markers")
+            lab.prop(context.scene.marker_color_enum, "marker_color")
+            lab.prop(context.scene, "marker_opacity", text="")
+            lab.operator("object.add_marker", text="Add 1", icon="PMARKER_SEL") # OUTLINER_DATA_META SNAP_NORMAL
+            #rig.label(text="")
             
-            rig = rsp.column()
-            rig.alignment = 'CENTER'
-            rig.label(text="  Markers")
-            rig.prop(context.scene.marker_color_enum, "marker_color")
-            rig.prop(context.scene, "marker_opacity", text="")
-            rig.label(text="")
-            rig.operator("object.add_marker", text="+1", icon="PMARKER_SEL")
+            
+            
+            
+            # dual add buttons
+#            lr = panel.split(factor=0.5)
+#            left = lr.column()
+#            right = lr.column()
+#            left.operator("object.add_sphere", text="+ Sphere", icon="MESH_CIRCLE")
+#            right.operator("object.add_marker", text="+ Marker", icon="PMARKER_SEL") # OUTLINER_DATA_META SNAP_NORMAL
             
             
             
@@ -138,7 +157,10 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
 #            row.operator("object.add_marker", icon = "PMARKER_SEL") # PMARKER_ACT PMARKER_SEL
 #            row.operator("object.add_sphere", icon = "MESH_CIRCLE")
             # other icons: SHADING_RENDERED NODE_MATERIAL SHADING_RENDERED MESH_CIRCLE
-            panel.operator("object.populate_spawns", icon = "POINTCLOUD_DATA")
+            if context.scene.slayer_count == 0 :
+                panel.operator("object.populate_spawns", icon = "POINTCLOUD_DATA", text="Populate All Spawns")
+            else:
+                panel.operator("object.populate_spawns", icon = "POINTCLOUD_DATA", text="Populate "+str(context.scene.slayer_count)+" Spawns")
             split = panel.split(factor=0.75)
             left = split.column()
             right = split.column()
@@ -149,7 +171,7 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
 # STEP 3    
         header, panel = layout.panel("rapa", default_closed=False)
         header.label(text="Randoms Geometry")#, icon="EVENT_NDOF_BUTTON_3") # EVENT_NDOF_BUTTON_3 IPO_CUBIC EVENT_THREEKEY
-        header.operator("object.how_randoms", text="", icon="QUESTION")
+        header.operator("object.how_randoms", text="", icon="INFO")
 #        header.scale_y = 1.25
         if panel:
             
@@ -161,14 +183,20 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
             row = right.row()
             row.prop(context.scene.boolean_solver_enum, "boolean_solver", expand=True)
             
-#            panel.prop(context.scene, "use_exact", text="Use 'Exact' Boolean")
+            split = panel.split(factor=0.35)
+            left = split.column()
+            right = split.column()
+#            left.label(text="Shell:")
+#            right.prop(context.scene, "shell_select", text="")
+#            left.label(text="Spheres:")
+#            right.prop(context.scene, "spheres_select", text="")
             panel.prop(context.scene, "apply_randoms_modifier", text="Apply When Completed")
             panel.operator("object.generate_randoms", icon = "HOLDOUT_ON")
 
 # STEP 4
         header, panel = layout.panel("inpa", default_closed=False)
         header.label(text="Gameplay Simulation")#, icon="EVENT_NDOF_BUTTON_4") # EVENT_NDOF_BUTTON_4 IPO_QUART EVENT_FOURKEY
-        header.operator("object.how_simulate", text="", icon="QUESTION")
+        header.operator("object.how_simulate", text="", icon="INFO")
 #        header.scale_y = 1.25
         if panel:
             
@@ -261,7 +289,7 @@ class CustomProperties(bpy.types.PropertyGroup):
     # this class must come after 'def update_sphere_color'
     sphere_color : bpy.props.EnumProperty(
         name="",
-        description="Select a color for the spawn spheres",
+        description="Sphere color",
         items=[
             ('red',"Red","Spheres will be red, like the blood of your enemies."),
             ('blue',"Blue","Spheres will probably get top spawn."),
@@ -275,11 +303,11 @@ class CustomProperties(bpy.types.PropertyGroup):
     
     marker_color : bpy.props.EnumProperty(
         name="",
-        description="Select a color for the spawn markers",
+        description="Marker color",
         items=[ 
             ('green',"Green","Markers will be good for the environment."),
+            ('white',"White","Markers will look smokey."),
             ('yellow',"Yellow","Markers will look like bananas."),
-            ('gray',"Gray","Markers will stand out nicely."),
             ('purple',"Purple","Markers will be loved by the Covenant."),
             ('black',"Black","Markers will be hard to see.")
         ],
@@ -316,6 +344,8 @@ def register():
     from bpy.utils import register_class
     for cls in classes:
         register_class(cls)
+        
+    bpy.types.Scene.slayer_count = bpy.props.IntProperty()
     
     bpy.types.Scene.sphere_color_enum = bpy.props.PointerProperty(
         type = CustomProperties,
@@ -347,6 +377,7 @@ def unregister():
     for cls in classes:
         unregister_class(cls)
 
+    del bpy.types.Scene.slayer_count
     del bpy.types.Scene.sphere_color_enum
     del bpy.types.Scene.marker_color_enum
     del bpy.types.Scene.perspective_enum

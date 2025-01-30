@@ -43,6 +43,56 @@ from io_scene_halo.global_functions import mesh_processing
 from io_scene_halo.misc import scale_models
 
 
+class CountSpawns(Operator):
+    
+    bl_label = "Count Spawns"
+    bl_idname = "object.count_spawns"
+    bl_description = "Get an initial count of Slayer PSLs"
+    
+    slayer: bpy.props.IntProperty(default=0)
+    
+    def invoke(self, context, event):
+        
+        PSL = bpy.data.collections.get("Player Starting Locations") 
+        if PSL:
+            print("Player Starting Locations found:",PSL.name)
+
+            slayer_count = 0
+            ctf_count = 0
+            
+            SlayerSpawns = {} # used only for counting the total number of 
+            CTFSpawns = {}    # spawns at the end of the loop
+
+            slayerSpawnIndices = ['2','12','13','14']
+            ctfSpawnIndices = ['1','12']
+            
+            for Spawn in PSL.objects:
+                #break # for debugging
+                if Spawn.tag_player_starting_location.type_0 in slayerSpawnIndices:
+
+                    slayer_count += 1
+                    n = Spawn.name.split("_")[1]
+                    SlayerSpawns[n] = Spawn
+                    
+                elif Spawn.tag_player_starting_location.type_0 in ctfSpawnIndices:
+                    ctf_count += 1
+                    n = Spawn.name.split("_")[1]
+                    CTFSpawns[n] = Spawn
+
+            print("Slayer spawns:",len(SlayerSpawns))
+            print("CTF spawns:",len(CTFSpawns))
+            
+            self.slayer = len(SlayerSpawns)
+            bpy.types.Scene.slayer_count = self.slayer
+#            bpy.objects.OBJECT_PT_SpawnShop.slayer_spawn_count = self.slayer_spawn_count
+#            bpy.context.scene.OBJECT_PT_SpawnShop.slayer_spawn_count = self.slayer_spawn_count
+        
+        return {"FINISHED"}
+            
+    def execute(self, context):
+        return {"FINISHED"}
+
+
 class WM_ShowError(Operator):
     # needed for the respawn functions...
     # maybe because they run after a timer?
@@ -69,7 +119,7 @@ def update_sphere_opacity(self, context):
     for SS in SpawnSpheres.objects:
         spheremat = SS.data.materials[0]
         if spheremat:
-            spheremat.node_tree.nodes["Principled BSDF.001"].inputs[4].default_value = bpy.context.scene.sphere_opacity  
+            spheremat.node_tree.nodes["Principled BSDF"].inputs[4].default_value = bpy.context.scene.sphere_opacity  
 
 
 def update_marker_opacity(self, context):
@@ -78,7 +128,8 @@ def update_marker_opacity(self, context):
     for SM in SpawnMarkers.objects:
         markermat = SM.data.materials[0]
         if markermat:
-            markermat.node_tree.nodes["Principled BSDF.001"].inputs[4].default_value = bpy.context.scene.marker_opacity
+#            markermat.node_tree.nodes["Principled BSDF"].inputs[4].default_value = bpy.context.scene.marker_opacity
+            markermat.node_tree.nodes["Mix Shader"].inputs[0].default_value = 1 - bpy.context.scene.marker_opacity
 
 
 def update_sphere_color(self, context):
@@ -99,20 +150,21 @@ def update_sphere_color(self, context):
     elif color == 'black':
         col = (0,0,0,1)
     
-    spheremat = MakeMat("SphereMat_",color)
+#    spheremat = MakeMat("SphereMat_",color)
     
     # do the samples also
     for o in bpy.data.objects:
         if "Sample Sphere" in o.name:
-            o.data.materials[0] = spheremat
+#            o.data.materials[0] = spheremat
             o.data.materials[0].surface_render_method = 'BLENDED'
+            o.data.materials[0].node_tree.nodes["Principled BSDF"].inputs[0].default_value = col
 
     SpawnSpheres = bpy.data.collections.get("Spawn Spheres")
     if(SpawnSpheres):
         for SS in SpawnSpheres.objects:
             spheremat = SS.data.materials[0]
             if spheremat:
-                spheremat.node_tree.nodes["Principled BSDF.001"].inputs[0].default_value = col
+                spheremat.node_tree.nodes["Principled BSDF"].inputs[0].default_value = col
 
 
 def update_marker_color(self, context):
@@ -123,30 +175,32 @@ def update_marker_color(self, context):
         col = (0,1,0,1)
     elif color == 'yellow':
         col = (1,1,0,1)
-    elif color == 'gray':
-        col = (1,1,0,1)
+    elif color == 'white':
+        col = (1,1,1,1)
     elif color == 'purple':
         col = (0.5,0.0,0.8,1.0)
     elif color == 'black':
         col = (0,0,0,1)
     
-    markermat = MakeMat("MarkerMat_",color)
+#    markermat = MakeMat("MarkerMat_",color)
     
     # do the samples also
     for o in bpy.data.objects:
         if "Sample Marker" in o.name:
-            o.data.materials[0] = markermat
+#            o.data.materials[0] = markermat
             o.data.materials[0].surface_render_method = 'BLENDED'
+            o.data.materials[0].node_tree.nodes["Principled BSDF"].inputs[0].default_value = col
 
     SpawnMarkers = bpy.data.collections.get("Spawn Markers")
     if(SpawnMarkers):
         for SM in SpawnMarkers.objects:
             markermat = SM.data.materials[0]
             if markermat:
-                markermat.node_tree.nodes["Principled BSDF.001"].inputs[0].default_value = col
+                markermat.node_tree.nodes["Principled BSDF"].inputs[0].default_value = col
+                
 
 def MakeMat(matname,color):
-    print("Making"+color+"material!")
+    print("Making",color,"material!")
     mat = bpy.data.materials.get(matname+color)
     if(mat):
         print("Material already exists!")
@@ -170,14 +224,20 @@ def MakeMat(matname,color):
             col = (0,0,0,1)
 
         # Create a Principled BSDF shader node
-        principled_bsdf = mat.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
-        principled_bsdf.inputs['Base Color'].default_value = col
-        principled_bsdf.inputs['Alpha'].default_value = bpy.context.scene.sphere_opacity # Transparency
-        # future: need another function for marker?
+        if mat.use_nodes:
+#            ntree = mat.node_tree
+            bsdf = mat.node_tree.nodes.get("Principled BSDF", None)
+            if bsdf is None:
+                bsdf = mat.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
+            
+            bsdf.name = 'Principled BSDF'
+            bsdf.inputs['Base Color'].default_value = col
+            bsdf.inputs['Alpha'].default_value = bpy.context.scene.sphere_opacity # Transparency
+            # future: need another function for marker?
 
-        # Connect the Principled BSDF to the Material Output
-        output_node = mat.node_tree.nodes.get('Material Output')
-        mat.node_tree.links.new(principled_bsdf.outputs['BSDF'], output_node.inputs['Surface'])
+            # Connect the Principled BSDF to the Material Output
+            output = mat.node_tree.nodes.get('Material Output')
+            mat.node_tree.links.new(bsdf.outputs['BSDF'], output.inputs['Surface'])
     return mat
 
 
@@ -191,9 +251,12 @@ def MakeSphere(mat):
         SpawnShopCollection = bpy.data.collections.new("Spawn Shop")
         bpy.context.scene.collection.children.link(SpawnShopCollection)
     
+    sdout = bpy.context.scene.sphere_detail_outer
+    sdin = bpy.context.scene.sphere_detail_inner
+    
     # CREATE INNER ICOSPHERE
     bpy.ops.mesh.primitive_ico_sphere_add(
-        subdivisions=bpy.context.scene.sphere_detail,
+        subdivisions=sdin,
         radius=100,
         enter_editmode=False,
         align='WORLD',
@@ -207,17 +270,16 @@ def MakeSphere(mat):
 
     # CREATE OUTER ICOSPHERE
     bpy.ops.mesh.primitive_ico_sphere_add(
-        subdivisions=bpy.context.scene.sphere_detail,
+        subdivisions=sdout,
         radius=600,
         enter_editmode=False,
         align='WORLD',
         location=(0, 0, 0),
         scale=(1, 1, 1)
     )
-
     sphere = bpy.context.active_object
-    sphere.data.name = "Sample Sphere Mesh"
-    sphere.name = "Sample Sphere [Detail "+str(bpy.context.scene.sphere_detail)+"]"
+    sphere.data.name = "Sample Sphere Mesh ["+str(sdout)+"."+str(sdin)+"]"
+    sphere.name = "Sample Sphere ["+str(sdout)+"."+str(sdin)+"]"
     
     # ASSIGN MATERIAL
     if sphere.data.materials: # If the object already has a material, replace it
@@ -318,56 +380,101 @@ def MakeMarker(mat):
     
     return marker
 
+def MakeNHEMarker(color):
+        
+    if color == 'green':
+        col = (0,1,0,1)
+    elif color == 'yellow':
+        col = (1,1,0,1)
+    elif color == 'white':
+        col = (1,1,1,1)
+    elif color == 'purple':
+        col = (0.5,0.0,0.8,1.0)
+    elif color == 'black':
+        col = (0,0,0,1)
+
+    print("Import from spawn_marker.blend and make it",color)
+    
+    # build file path:
+    script_folder_path = path.dirname(path.dirname(__file__))
+    p = bpy.utils.user_resource('SCRIPTS') + "\\addons\\halo_spawn_shop\\blend\\"
+    f = "spawn_marker.blend"
+    filepath = p+f
+    
+    with bpy.data.libraries.load(filepath) as (data_from, data_to):
+        data_to.objects = ["spawn_marker_nhe"]
+    
+    obj = data_to.objects[0]
+    bpy.context.collection.objects.link(obj)
+    obj.data.materials[0].node_tree.nodes["Principled BSDF"].inputs[0].default_value = col
+    
+    for mat in obj.data.materials:
+        if mat.name not in bpy.data.materials:
+            bpy.data.materials.append(mat)
+    
+    return obj
 
 
-#class SpawnScenery(Operator): # not in use
-#    bl_idname = "object.spawn_scenery"
-#    bl_label = "Spawn Scenery"
-#    bl_description = "Place a spawn scenery item at every Slayer spawn."
-#    
-#    def execute(self, context):
+class Make_NHE_Marker(Operator): # not in use
+    bl_idname = "object.spawn_marker_nhe"
+    bl_label = "NHE Spawn Marker"
+    bl_description = "Place a spawn scenery item at every Slayer spawn."
+    
+    def execute(self, context):
 
-#        print("hoping and trying and possibly placing scenery...")
-#        
-#        game_version = "halo1"
-#        
-#        # get_object_mesh stuff here:
-#        script_folder_path = path.dirname(path.dirname(__file__))
-#        p = path.join(script_folder_path, "resources")
-#        p = bpy.utils.user_resource('SCRIPTS') + "\\addons\\halo_spawn_shop\\jms\\"
-#        f = "jackal.jms"
-#        filepath = p+f
-#        
-#        # dimensions aren't used unless item not found,
-#        # then makes a box with these dimensions:
-#        array_item = ("jackal", (2.66301, 8.74704, 17.708))
+        print("Import from spawn_marker.blend...")
+        
+        # build file path:
+        script_folder_path = path.dirname(path.dirname(__file__))
+        p = bpy.utils.user_resource('SCRIPTS') + "\\addons\\halo_spawn_shop\\blend\\"
+        f = "spawn_marker.blend"
+        filepath = p+f
+        
+        with bpy.data.libraries.load(filepath) as (data_from, data_to):
+            data_to.objects = ["spawn_marker_nhe"]
+        
+        obj = data_to.objects[0]
+        bpy.context.collection.objects.link(obj)
+        
+        for mat in obj.data.materials:
+            if mat.name not in bpy.data.materials:
+                bpy.data.materials.append(mat)
+        
+        return {"FINISHED"}
 
-#        # start from bottom:
-#        mesh_processing.deselect_objects(context)
-#        
-#        # then create empty and select it
-#        n = "" # needs to come from looping through spawn points (or spheres, during that operation).
-#        # also, copy this mesh once created, don't generate every iteration in the loop.
-#        object_name = "spawn_marker"+n
-#        mesh = scale_models.generate_mesh(filepath, array_item, game_version)
-#        print(mesh)
-#        object_mesh = bpy.data.objects.new(object_name, mesh)
-#        context.collection.objects.link(object_mesh)
-#        object_mesh.select_set(True)
-#        
-#        return {"FINISHED"}
+
+    
+classes = (
+    WM_ShowError,
+    Make_NHE_Marker,
+    CountSpawns,
+)
 
 def register():
     from bpy.utils import register_class
-    register_class(WM_ShowError)
+    for cls in classes:
+        register_class(cls)
         
-    bpy.types.Scene.sphere_detail = bpy.props.IntProperty( # need another option for inner sphere levels
+#    from bpy.utils import register_class
+#    register_class(WM_ShowError)
+#    register_class(Make_NHE_Marker)
+        
+    bpy.types.Scene.sphere_detail_outer = bpy.props.IntProperty( # need another option for inner sphere levels
         name = "",
         description = "Range: 3-6\nDefault: 4\n\nSet the number of subdivisions to\nperform when creating the spheres.\n4 really is enough.",
         default = 4,
         min = 3,
         max = 6
     )
+        
+    bpy.types.Scene.sphere_detail_inner = bpy.props.IntProperty( # need another option for inner sphere levels
+        name = "",
+        description = "Range: 3-6\nDefault: 4\n\nSet the number of subdivisions to\nperform when creating the spheres.\n4 really is enough.",
+        default = 4,
+        min = 3,
+        max = 6
+    )
+    
     bpy.types.Scene.sphere_opacity = bpy.props.FloatProperty(
         name = "",
         description = "Range: 0.2-0.8\nDefault: 0.4\n\nSet the opacity for spawn spheres.",
@@ -378,18 +485,23 @@ def register():
     )
     bpy.types.Scene.marker_opacity = bpy.props.FloatProperty(
         name = "",
-        description = "Range: 0.2-0.8\nDefault: 0.4\n\nSet the opacity for spawn markers.",
-        default = 0.4,
-        min = 0.2,
-        max = 0.8,
+        description = "Range: 0.4-1.0\nDefault: 1.0\n\nSet the opacity for spawn markers.",
+        default = 1.0,
+        min = 0.4,
+        max = 1.0,
         update = update_marker_opacity
     )
 
 
 def unregister():
     from bpy.utils import unregister_class
-    unregister_class(WM_ShowError)
+    for cls in classes:
+        unregister_class(cls)
+#    from bpy.utils import unregister_class
+#    unregister_class(WM_ShowError)
+#    unregister_class(Make_NHE_Marker)
     
-    del bpy.types.Scene.sphere_detail
+    del bpy.types.Scene.sphere_detail_outer
+    del bpy.types.Scene.sphere_detail_inner
     del bpy.types.Scene.sphere_opacity
     del bpy.types.Scene.marker_opacity

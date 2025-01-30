@@ -34,7 +34,8 @@ class GenerateRandoms(Operator):
     bl_label = "Generate Randoms  "
     bl_description = "Cut the spheres out of the shelled\nmap to create the randoms geometry."
     
-    detail = -1
+    detail_outer = -1
+    detail_inner = -1
     
     def draw(self, context):
         
@@ -52,17 +53,26 @@ class GenerateRandoms(Operator):
             
             tris = len(sphere.data.loop_triangles)
             
+            details = sphere.data.name.split("[")[1].split("]")[0].split(".")
+            self.detail_outer = int(details[0])
+            self.detail_inner = int(details[1])
+            
+            # this will be broken now... if we allow inner detail adjustment
+            # maybe just do triangle ranges, instead of exact?
+            # 4.3 = 1600
+            # 4.4 = 2560
+            # 5.4 = 6400
             if tris == 640:
-                self.detail = 3
+#                self.detail_outer = 3
                 kinda_break = "Press OK if you're willing to unfocus your eyes for 30 seconds."
             elif tris == 2560:
-                self.detail = 4
+#                self.detail_outer = 4
                 kinda_break = "Press OK if you're heading to the bathroom."
             elif tris == 10240:
-                self.detail = 5
+#                self.detail_outer = 5
                 kinda_break = "Press OK if you acknowledge this is a bad idea."
             elif tris == 40960:
-                self.detail = 6
+#                self.detail_outer = 6
                 kinda_break = "Press OK if you're absolutely insane."
         
         tris_formatted = "{:,}".format(tris)
@@ -83,7 +93,9 @@ class GenerateRandoms(Operator):
      
     def execute(self, context):       
         print("Go get a coffee.")
-        bpy.ops.object.generate_randoms_confirm(sphere_detail=self.detail)
+        sdout = self.detail_outer
+        sdin = self.detail_inner
+        bpy.ops.object.generate_randoms_confirm(sphere_detail_outer = sdout, sphere_detail_inner = sdin)
         return {"FINISHED"}
     
     def invoke(self, context, event):
@@ -105,12 +117,14 @@ class GenerateRandomsConfirm(Operator):
     bl_label = "Generate Randoms  "
     bl_description = "Cut the spheres out of the shelled\nmap to create the randoms geometry."
     
-    sphere_detail: bpy.props.IntProperty(name="Sphere Detail")
+    sphere_detail_outer: bpy.props.IntProperty(name="Sphere Detail Outer")
+    sphere_detail_inner: bpy.props.IntProperty(name="Sphere Detail Inner")
     
     def execute(self, context):
         print("Calculating randoms...")
 
-        detail = self.sphere_detail
+        detail_outer = self.sphere_detail_outer
+        detail_inner = self.sphere_detail_inner
         
         found = False
         
@@ -162,7 +176,7 @@ class GenerateRandomsConfirm(Operator):
             boo.solver = quality
             boo.operand_type = 'COLLECTION'
             boo.collection = SpawnSpheresCollection
-            shelled_bsp.name = "BSP.shell.rand."+str(detail)
+            shelled_bsp.name = "BSP.shell.rand."+str(detail_outer)+"."+str(detail_inner)
             if(bpy.context.scene.apply_randoms_modifier):
                 bpy.ops.object.modifier_apply(modifier="Bootilt")
         else:
@@ -191,6 +205,17 @@ def register():
         description = "Apply the modifier when the boolean operation\ncompletes, or leave unchecked to tweak settings.",
         default = True
     )
+    bpy.types.Scene.shell_select = bpy.props.PointerProperty(
+        name = "",
+        description = "Select the shelled BSP created in Step 1",
+        type = bpy.types.Object
+    )
+    bpy.types.Scene.spheres_select = bpy.props.PointerProperty(
+        name = "",
+        description = "Select the collection of Spawn Spheres to cut from the shell.",
+        type = bpy.types.Collection
+    )
+    
 #    bpy.types.Scene.use_exact = bpy.props.BoolProperty(
 #        name = "Exact",
 #        description = "Uncheck for testing in 'Fast' mode, which\nis much quicker, but notably unreliable.",
@@ -203,4 +228,6 @@ def unregister():
         unregister_class(cls)
         
     del bpy.types.Scene.apply_randoms_modifier
+    del bpy.types.Scene.spheres_select
+    del bpy.types.Scene.shell_select
 #    del bpy.types.Scene.use_exact

@@ -42,7 +42,7 @@ class HowTo(Operator):
 
 
 class WM_HowTo(Operator):
-    bl_label = "Spawn Shop v0.8.5 - Guide"
+    bl_label = "Spawn Shop v0.8.6 - Guide"
     bl_idname = "wm.howto"
         
     def draw(self, context):
@@ -61,7 +61,7 @@ class WM_HowTo(Operator):
         row.label(text="  basic process for producing spawn spheres and 'randoms' geometry is outlined below. For a more in-depth look")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  and detailed explanations, click the (?) icon to the right of each section of the add-on panel.")
+        row.label(text="  and detailed explanations, click the ⓘ icon to the right of each section of the add-on panel.")
         row = box.row()
         row.scale_y = 0.5            
                     
@@ -216,16 +216,19 @@ class HowPopulate(Operator):
         row.label(text="  ")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  You can adjust the color and opacity of Spheres and Markers before or after you've added them.")
+        row.label(text="  Set the Sphere detail before adding them (remember: each level is exponentially more triangles).")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  Caution: Do not manually move a Sphere or Marker! Rather, move the parent PSL, and the objects")
+        row.label(text="  You can adjust the color and opacity of Spheres and Markers before or after they've been created.")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  will move with it. If you need to start over, delete the Spheres and Markers collections, and click")
+        row.label(text="  Caution: Do not manually move or rotate a Sphere or Marker! Rather, adjust the parent PSL, and the")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  the [Purge Orphans </3] button to clean up the leftover mesh and materials. (Change your")
+        row.label(text="  objects will move with it. If you need to start over, delete the Spheres and Markers collections, and")
+        row = box.row()
+        row.scale_y = 0.5
+        row.label(text="  click the [Purge Orphans </3] button to clean up the leftover mesh and materials. (Change your")
         row = box.row()
         row.scale_y = 0.5
         row.label(text="  'Outliner' list view to 'Unused Data' to see orphans).")

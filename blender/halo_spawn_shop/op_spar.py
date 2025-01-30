@@ -555,13 +555,14 @@ def update_prediction_bool(self, context):
             for SS in SpawnSpheres.objects:
                 spheremat = SS.data.materials[0]
                 if spheremat:
-                    spheremat.node_tree.nodes["Principled BSDF.001"].inputs[4].default_value = bpy.context.scene.sphere_opacity
+                    spheremat.node_tree.nodes["Principled BSDF"].inputs[4].default_value = bpy.context.scene.sphere_opacity
         if SpawnMarkers:
             for SM in SpawnMarkers.objects:
                 markermat = SM.data.materials[0]
                 if markermat:
-                    markermat.node_tree.nodes["Principled BSDF.001"].inputs[4].default_value = bpy.context.scene.marker_opacity
-                
+#                    markermat.node_tree.nodes["BSDF"].inputs[4].default_value = bpy.context.scene.marker_opacity
+                    markermat.node_tree.nodes["Mix Shader"].inputs[0].default_value = 1 - bpy.context.scene.marker_opacity
+
         try:
             bpy.app.timers.unregister(TrackingLoop)
         except ValueError:
@@ -667,10 +668,12 @@ def TrackingLoop(PSLs, Spartans):
                             marker_alpha = bpy.context.scene.marker_opacity
                     
                     if spheremat:
-                        spheremat.node_tree.nodes["Principled BSDF.001"].inputs[4].default_value = sphere_alpha
+                        spheremat.node_tree.nodes["Principled BSDF"].inputs[4].default_value = sphere_alpha
     
                     if markermat:
-                        markermat.node_tree.nodes["Principled BSDF.001"].inputs[4].default_value = marker_alpha
+#                        markermat.node_tree.nodes["Principled BSDF"].inputs[4].default_value = marker_alpha
+                        # we're mixing transparency into shader, so it has to be inverse (1 - marker_alpha)
+                        markermat.node_tree.nodes["Mix Shader"].inputs[0].default_value = 1 - marker_alpha
                                 
             return bpy.context.scene.spawn_refresh_rate # tells the timer how quickly to run again
         else:

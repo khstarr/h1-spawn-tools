@@ -77,7 +77,7 @@ class PopulateSpawns(bpy.types.Operator):
         scene = bpy.context.scene
                 
         # look for 'Spawn Shop'
-        SpawnShopCollection = bpy.context.scene.collection.children.get("Spawn Shop")
+        SpawnShopCollection = bpy.data.collections.get("Spawn Shop")
         if SpawnShopCollection:
             print("Spawn Shop collection already exists, which is good. Proceeding...")
         else:
@@ -131,7 +131,7 @@ class PopulateSpawns(bpy.types.Operator):
             SpawnShopCollection.children.link(SpawnMarkersCollection)
         
         # look for 'Player Starting Locations' (imported)
-        PSL = bpy.context.scene.collection.children.get("Player Starting Locations") 
+        PSL = bpy.data.collections.get("Player Starting Locations") 
         if PSL:
             print("Player Starting Locations found:",PSL.name)
 
@@ -148,6 +148,13 @@ class PopulateSpawns(bpy.types.Operator):
                 SampleSphere = MakeSphere(bout)
             if make_markers:
                 SampleMarker = MakeMarker(markmat)
+                NHEMarker = MakeNHEMarker(marker_color)
+                # how to edit nhe marker opacity:
+#                bpy.data.materials["spawn_marker_nhe"].node_tree.nodes["Mix Shader"].inputs[0].default_value = 0
+
+                # turn on backface culling
+#                bpy.context.object.active_material.use_backface_culling = True
+
             
             SlayerSpawns = {} # used only for counting the
             CTFSpawns = {}    # total number of spawns at end of loop
@@ -173,7 +180,12 @@ class PopulateSpawns(bpy.types.Operator):
                         NewSphere.location = Spawn.location
                         NewSphere.rotation_euler = Spawn.rotation_euler
                         NewSphere.name = "SpawnSphere_"+n
-                        NewSphere.data.name = "SpawnSphere_Mesh_"+n
+                        
+                        detail = SampleSphere.data.name.split("[")[1].split("]")[0]
+#                        detail = detail.split("]")[0]
+#                        sdout = detail.split(".")[0]
+#                        sdin = detail.split(".")[1]
+                        NewSphere.data.name = "SpawnSphere_Mesh_["+detail+"]_"+n
                         
                         dupmat = bout.copy()
                         existing = bpy.data.materials.get("SphereMat_"+n)
@@ -193,19 +205,31 @@ class PopulateSpawns(bpy.types.Operator):
                     
                     if make_markers:
                         # MAKE SPAWN MARKER
-                        NewMarker = SampleMarker.copy()
-                        NewMarker.data = SampleMarker.data.copy()
+#                        NewMarker = SampleMarker.copy()
+#                        NewMarker.data = SampleMarker.data.copy()
+                        NewMarker = NHEMarker.copy()
+                        NewMarker.data = NHEMarker.data.copy()
                         NewMarker.location = Spawn.location
                         NewMarker.rotation_euler = Spawn.rotation_euler
                         NewMarker.name = "SpawnMarker_"+n
                         NewMarker.data.name = "SpawnMarker_Mesh_"+n
                         
-                        dupmat = markmat.copy()
-                        existing = bpy.data.materials.get("MarkerMat_"+n)
+                        # if using SampleMarker:
+#                        dupmat = markmat.copy()
+#                        existing = bpy.data.materials.get("MarkerMat_"+n)
+#                        if existing:
+#                            bpy.data.materials.remove(existing)
+#                        dupmat.name = "MarkerMat_"+n
+#                        NewMarker.data.materials[0] = dupmat
+
+                        dupmat = NewMarker.data.materials[0].copy()
+                        existing = bpy.data.materials.get("NHEMarkerMat_"+n)
                         if existing:
                             bpy.data.materials.remove(existing)
-                        dupmat.name = "MarkerMat_"+n
+                        dupmat.name = "NHEMarkerMat_"+n
                         NewMarker.data.materials[0] = dupmat
+#                        dupmat.use_backface_culling = True
+
                         
                         # MOVE SPAWN MARKER TO 'Spawn Markers' COLLECTION, UNLINK FROM 'Scene Collection'
                         if NewMarker.users_collection:
@@ -237,6 +261,11 @@ class PopulateSpawns(bpy.types.Operator):
                 bpy.data.objects.remove(SampleMarker, do_unlink=True)
                 if bpy.data.meshes[marker_mesh]:
                     bpy.data.meshes.remove(bpy.data.meshes[marker_mesh])
+                    
+                nhe_marker_mesh = NHEMarker.data.name
+                bpy.data.objects.remove(NHEMarker, do_unlink=True)
+                if bpy.data.meshes[nhe_marker_mesh]:
+                    bpy.data.meshes.remove(bpy.data.meshes[nhe_marker_mesh])
              
         else:
             self.report({'ERROR'}, "Player Starting Locations not found in Scene root!")
@@ -259,11 +288,13 @@ class PurgeOrphans(bpy.types.Operator):
             'SpawnSphere',
             'SpawnMarker',
             'BSP_Mesh',
+            'BSP.shell',
             'P1',
             'P2',
             'P3',
             'P4',
-            'spartan'
+            'spartan',
+            'spawn_marker_nhe',
         ]
         
         objects_removed = 0
@@ -294,16 +325,45 @@ class PurgeOrphans(bpy.types.Operator):
                     meshes_removed += 1
                     bpy.data.meshes.remove(block)
         
+        delete_mats = [
+            'SpawnMat',
+            'SphereMat',
+            'MarkerMat',
+            'PinkShell',
+            'spawn_marker_nhe',
+        ]
+        
         materials_removed = 0
         for material in bpy.data.materials:
             if material.users == 0:
-                if "SphereMat" in material.name or "MarkerMat" in material.name or "PinkShell" in material.name:
+                
+                delete_mat = False
+                for string in delete_mats:
+                    if string in material.name:
+                        delete_mat = True
+                        break
+                    
+                if delete_mat:
                     materials_removed += 1
                     bpy.data.materials.remove(material)
         
-        self.report({"ERROR"},f"{objects_removed} orphaned objects removed!")
-        self.report({"ERROR"},f"{meshes_removed} orphaned meshes removed!")
-        self.report({"ERROR"},f"{materials_removed} orphaned materials removed!")
+        
+        images_removed = 0            
+        for image in bpy.data.images:
+            if image.users == 0:
+                if "spawn_marker_blender" in image.name:
+                    images_removed += 1
+                    bpy.data.images.remove(image)
+        
+        obs = "" if objects_removed == 1 else "s"
+        mes = "" if meshes_removed == 1 else "es"
+        mas = "" if materials_removed == 1 else "s"
+        ims = "" if images_removed == 1 else "s"
+        
+        self.report({"ERROR"},f"{objects_removed} orphaned object{obs} removed!")
+        self.report({"ERROR"},f"{meshes_removed} orphaned mesh{mes} removed!")
+        self.report({"ERROR"},f"{materials_removed} orphaned material{mas} removed!")
+        self.report({"ERROR"},f"{images_removed} orphaned image{ims} removed!")
         
         return {"FINISHED"}
 
