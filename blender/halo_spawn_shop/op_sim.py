@@ -28,6 +28,7 @@ import sys, bpy
 from bpy.types import Operator
 import functools, random # real time tracking
 import math
+import mathutils
 from math import *
 
 
@@ -35,7 +36,7 @@ from math import *
 
    
 def RespawnPlayer(player):
-    
+        
     s = 0
     
     if player == 1:
@@ -81,9 +82,10 @@ def RespawnPlayer(player):
             bpy.context.scene.sec_p4 = 0
             select_spawn_point(bpy.context.scene.player_4_select)
         
+        # update the countdown in case mouse wasn't moving over panel
         for area in bpy.context.screen.areas:
             if area.type == "VIEW_3D":
-                area.tag_redraw()
+                area.tag_redraw
                 
         s = -1
         print("Respawn now!")
@@ -110,10 +112,20 @@ def select_spawn_point(Player):
     Spartans = get_selected_spartans()
         
     spawner_team = 'unknown'
-    if Player == bpy.context.scene.player_1_select or Player == bpy.context.scene.player_2_select:
+    p = -1
+    
+    if Player == bpy.context.scene.player_1_select:
         spawner_team = 'blue'
-    elif Player == bpy.context.scene.player_3_select or Player == bpy.context.scene.player_4_select:
+        p = 1
+    elif Player == bpy.context.scene.player_2_select:
+        spawner_team = 'blue'
+        p = 2
+    elif Player == bpy.context.scene.player_3_select:
         spawner_team = 'red'
+        p = 3
+    elif Player == bpy.context.scene.player_4_select:
+        spawner_team = 'red'
+        p = 4
 
     if len(PSLs.items()) == 0:
         bpy.ops.wm.show_error('INVOKE_DEFAULT',message="No Player Starting Locations found!")
@@ -180,6 +192,10 @@ def select_spawn_point(Player):
         Player.hide_set(False)
         bpy.ops.object.select_all(action='DESELECT')
         Player.select_set(True)
+        
+        if True: # make this a user toggle from panel
+            spartan_shoulders(p)
+            
             
     else:
         print("No spartans selected. Cannot calculate spawns. (This actually shouldn't even happen.)")
@@ -190,7 +206,123 @@ def get_highest_weight(weights):
 
     max_key = max(weights, key = weights.get)
     return max_key, weights[max_key]
-             
+
+
+def spartan_shoulders(p):
+    
+    # define players
+    players = [
+        None,
+        bpy.context.scene.player_1_select,
+        bpy.context.scene.player_2_select,
+        bpy.context.scene.player_3_select,
+        bpy.context.scene.player_4_select
+    ]
+    
+    player = players[p]
+
+    area_type = 'VIEW_3D'
+    areas  = [area for area in bpy.context.window.screen.areas if area.type == area_type]
+
+    with bpy.context.temp_override( # this was a fuck
+        window=bpy.context.window,
+        area=areas[0],
+        region=[region for region in areas[0].regions if region.type == 'WINDOW'][0],
+        screen=bpy.context.window.screen):
+            
+
+# enums - fly to spartan - this needs to be done first
+        # jump camera to SELECTED (requires selecting the player)
+        bpy.ops.object.select_all(action='DESELECT')
+        bpy.context.view_layer.objects.active = player
+        player.select_set(True)
+        bpy.ops.view3d.view_selected(use_all_regions=False)
+
+
+# enums - look at spartan's chest (must happen after view_selected)
+        player_chest = player.location.copy() + mathutils.Vector((0,0,50))
+        bpy.context.space_data.region_3d.view_location = player_chest
+        
+        # get spawn orientation (we care about Z axis)
+        facing = player.rotation_euler.copy()
+        spawn_z = math.degrees(facing[2])
+        
+        # get viewport orientation
+        view_euler = bpy.context.space_data.region_3d.view_rotation.to_euler()
+        
+        
+        # get and fix viewport X angle
+        view_x_rad = view_euler.x
+        view_x_deg = math.degrees(view_x_rad)
+#        print("View X Degrees:",view_x_deg)
+        if view_x_deg >= 0:
+            pitch = view_x_deg - 72
+            direction = 'ORBITUP'
+        elif view_x_deg < 0:
+            pitch = 72 - view_x_deg
+            direction = 'ORBITDOWN'
+#        print(direction,pitch)
+        bpy.ops.view3d.view_orbit(angle=math.radians(pitch), type=direction)
+        
+        
+        # get and fix viewport Z angle
+        view_z_rad = view_euler.z
+        view_z_deg = math.degrees(view_z_rad)
+        spin = (view_z_deg - spawn_z) + 90
+#        print('Spin...\nView Z: ',view_z_deg,'\nSpawnZ: ',spawn_z,'\nFinal:  ',spin)
+        # orbit the viewport ('ORBITLEFT' subtracts the supplied angle)
+        bpy.ops.view3d.view_orbit(angle=math.radians(spin), type='ORBITLEFT')
+
+
+
+class ZoomSpartan(Operator):
+    bl_idname = "object.view_spartan"
+    bl_label = "Find Spartan"
+    bl_description = "Move viewport to this Spartan"
+    
+    player: bpy.props.IntProperty(name="Player", default=-1)
+    
+    def execute(self,context):
+        
+        p = self.player
+        
+        spartan_shoulders(p)
+        
+#        # old attempts to get quaternion
+#        facing = players[p].rotation_euler.copy()
+#        x = facing[0]
+#        y = facing[1]
+#        z = facing[2]
+#        
+#        base_vector = mathutils.Vector(facing)
+#        
+#        rotation_matrix = facing.to_matrix()
+#        
+#        rotated_vector = rotation_matrix @ base_vector
+#        
+#        print('Rotated Vector:',rotated_vector)
+#        
+#        quat = facing.to_quaternion()
+#        
+#        xrad = math.radians(90)
+#        yrad = math.radians(45)
+#        zrad = math.radians(-12)
+#        euler = mathutils.Euler((xrad,yrad,zrad),'XYZ')
+#        
+#        quat_to_euler = bpy.context.space_data.region_3d.view_rotation.to_euler()
+#        
+#        print("View Quaternion  :",bpy.context.space_data.region_3d.view_rotation)
+#        print("Spawn Facing     :",facing)
+#        print("Built Euler      :",euler)
+#        print("Quat to Euler    :",quat_to_euler)
+#        
+#        qrot = euler.to_quaternion()
+#        bpy.context.space_data.region_3d.view_rotation = qrot # points straight down at spawn
+
+
+        
+        return {"FINISHED"}
+    
 
 class KillSpartan(Operator):
     bl_idname = "object.kill_spartan"
@@ -200,6 +332,8 @@ class KillSpartan(Operator):
     player: bpy.props.IntProperty(name="Player", default=-1)
     
     def execute(self, context):
+        
+        print("KillSpartan(Operator) >>>",str(context),str(context.area),str(context.area.type))
         
         p = self.player
         
@@ -257,10 +391,13 @@ class SpawnSpartan(Operator):
     
     def execute(self, context):
         
+        
+        print("SpawnSpartan(Operator) >>>",str(context),str(context.area),str(context.area.type))
+        
         spawner = self.spawner
         print("Respawning player", str(self.spawner))
 
-        SpawnSpheres = bpy.data.collections.get("Spawn Spheres")
+        SpawnSpheres = bpy.context.scene.spheres_select # add a dedicated picker for simulation?
         Spartans = get_selected_spartans()
 
         if spawner == 1:
@@ -283,7 +420,7 @@ class GenerateSpartans(Operator):
 
 Adds 2 blue and 2 red Spartans to the map, spawning them the same way Halo would.
 (Requires at least 4 spawn points in the 'Player Starting Locations' collection, and all
-the Spawn Spheres populated and linked to said spawns)."""
+the Spheres populated and linked to said spawns)."""
     
     def execute(self, context):
         
@@ -518,8 +655,8 @@ def get_selected_spartans():
 def update_prediction_bool(self, context):
     
 
-    SpawnSpheres = bpy.data.collections.get("Spawn Spheres")
-    SpawnMarkers = bpy.data.collections.get("Spawn Markers")
+    SpawnSpheres = bpy.context.scene.spheres_select # add a dedicated picker for simulation?
+    SpawnMarkers = bpy.data.collections.get("Markers")
     
     if bpy.context.scene.prediction:
         if not SpawnSpheres and not SpawnMarkers:
@@ -686,6 +823,7 @@ def TrackingLoop(PSLs, Spartans):
 
 
 classes = (            # careful, if this is one item, 
+    ZoomSpartan,
     KillSpartan,       # it needs a trailing comma, 
     SpawnSpartan,      # otherwise python shits
     GenerateSpartans,  # itself trying to iterate

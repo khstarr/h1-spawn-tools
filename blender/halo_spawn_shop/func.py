@@ -114,18 +114,17 @@ class WM_ShowError(Operator):
     
 
 def update_sphere_opacity(self, context):
-
-    SpawnSpheres = bpy.data.collections.get("Spawn Spheres")
-    for SS in SpawnSpheres.objects:
-        spheremat = SS.data.materials[0]
-        if spheremat:
-            spheremat.node_tree.nodes["Principled BSDF"].inputs[4].default_value = bpy.context.scene.sphere_opacity  
+            
+    materials = bpy.data.materials
+    for material in materials:
+        if "SphereMat" in material.name:
+            material.node_tree.nodes["Principled BSDF"].inputs[4].default_value = bpy.context.scene.sphere_opacity
 
 
 def update_marker_opacity(self, context):
 
-    SpawnMarkers = bpy.data.collections.get("Spawn Markers")
-    for SM in SpawnMarkers.objects:
+    MarkersCollection = bpy.data.collections.get("Markers")
+    for SM in MarkersCollection.objects:
         markermat = SM.data.materials[0]
         if markermat:
 #            markermat.node_tree.nodes["Principled BSDF"].inputs[4].default_value = bpy.context.scene.marker_opacity
@@ -153,18 +152,16 @@ def update_sphere_color(self, context):
 #    spheremat = MakeMat("SphereMat_",color)
     
     # do the samples also
-    for o in bpy.data.objects:
-        if "Sample Sphere" in o.name:
-#            o.data.materials[0] = spheremat
-            o.data.materials[0].surface_render_method = 'BLENDED'
-            o.data.materials[0].node_tree.nodes["Principled BSDF"].inputs[0].default_value = col
-
-    SpawnSpheres = bpy.data.collections.get("Spawn Spheres")
-    if(SpawnSpheres):
-        for SS in SpawnSpheres.objects:
-            spheremat = SS.data.materials[0]
-            if spheremat:
-                spheremat.node_tree.nodes["Principled BSDF"].inputs[0].default_value = col
+#    for o in bpy.data.objects:
+#        if "Sample Sphere" in o.name:
+##            o.data.materials[0] = spheremat
+#            o.data.materials[0].surface_render_method = 'BLENDED'
+#            o.data.materials[0].node_tree.nodes["Principled BSDF"].inputs[0].default_value = col
+                
+    materials = bpy.data.materials
+    for material in materials:
+        if "SphereMat" in material.name:
+            material.node_tree.nodes["Principled BSDF"].inputs[0].default_value = col
 
 
 def update_marker_color(self, context):
@@ -191,7 +188,7 @@ def update_marker_color(self, context):
             o.data.materials[0].surface_render_method = 'BLENDED'
             o.data.materials[0].node_tree.nodes["Principled BSDF"].inputs[0].default_value = col
 
-    SpawnMarkers = bpy.data.collections.get("Spawn Markers")
+    SpawnMarkers = bpy.data.collections.get("Markers") # this should be dynamically acquired
     if(SpawnMarkers):
         for SM in SpawnMarkers.objects:
             markermat = SM.data.materials[0]
@@ -241,7 +238,7 @@ def MakeMat(matname,color):
     return mat
 
 
-def MakeSphere(mat):
+def MakeSphere(mat,sdout,sdin):
 
     # look for 'Spawn Shop'
     SpawnShopCollection = bpy.data.collections.get("Spawn Shop")
@@ -250,9 +247,6 @@ def MakeSphere(mat):
     else:
         SpawnShopCollection = bpy.data.collections.new("Spawn Shop")
         bpy.context.scene.collection.children.link(SpawnShopCollection)
-    
-    sdout = bpy.context.scene.sphere_detail_outer
-    sdin = bpy.context.scene.sphere_detail_inner
     
     # CREATE INNER ICOSPHERE
     bpy.ops.mesh.primitive_ico_sphere_add(
@@ -265,8 +259,8 @@ def MakeSphere(mat):
     )
     
     inball = bpy.context.active_object
-    inner_name = "Sample Sphere inner_mesh"
-    inball.data.name = inner_name
+    inner_mesh_name = "Sample Sphere inner_mesh"
+    inball.data.name = inner_mesh_name
 
     # CREATE OUTER ICOSPHERE
     bpy.ops.mesh.primitive_ico_sphere_add(
@@ -297,8 +291,8 @@ def MakeSphere(mat):
     sphere.data.shade_smooth()
     
     # Deleting inball (above) produces an orphaned mesh. delete it:
-    if bpy.data.meshes[inner_name]:
-        bpy.data.meshes.remove(bpy.data.meshes[inner_name])
+    if bpy.data.meshes[inner_mesh_name]:
+        bpy.data.meshes.remove(bpy.data.meshes[inner_mesh_name])
     
     if(sphere.users_collection):
         parent = sphere.users_collection[0]
@@ -381,6 +375,14 @@ def MakeMarker(mat):
     return marker
 
 def MakeNHEMarker(color):
+    
+    # look for 'Spawn Shop'
+    SpawnShopCollection = bpy.data.collections.get("Spawn Shop")
+    if SpawnShopCollection:
+        print("Spawn Shop collection already exists, which is good. Proceeding.")
+    else:
+        SpawnShopCollection = bpy.data.collections.new("Spawn Shop")
+        bpy.context.scene.collection.children.link(SpawnShopCollection)
         
     if color == 'green':
         col = (0,1,0,1)
@@ -404,49 +406,67 @@ def MakeNHEMarker(color):
     with bpy.data.libraries.load(filepath) as (data_from, data_to):
         data_to.objects = ["spawn_marker_nhe"]
     
-    obj = data_to.objects[0]
-    bpy.context.collection.objects.link(obj)
-    obj.data.materials[0].node_tree.nodes["Principled BSDF"].inputs[0].default_value = col
+    marker = data_to.objects[0]
+#    bpy.context.collection.objects.link(obj)
     
-    for mat in obj.data.materials:
+    # LINK TO 'Spawn Shop'
+    if(marker.users_collection):
+        parent = marker.users_collection[0]
+        parent.objects.unlink(marker)
+    SpawnShopCollection.objects.link(marker)
+    
+    bpy.ops.object.select_all(action='DESELECT')
+    marker.select_set(True)
+    
+    marker.data.materials[0].node_tree.nodes["Principled BSDF"].inputs[0].default_value = col
+    
+    for mat in marker.data.materials:
         if mat.name not in bpy.data.materials:
             bpy.data.materials.append(mat)
     
-    return obj
+    return marker
 
 
-class Make_NHE_Marker(Operator): # not in use
-    bl_idname = "object.spawn_marker_nhe"
-    bl_label = "NHE Spawn Marker"
-    bl_description = "Place a spawn scenery item at every Slayer spawn."
-    
-    def execute(self, context):
+#class Make_NHE_Marker(Operator): # not in use
+#    bl_idname = "object.spawn_marker_nhe"
+#    bl_label = "NHE Spawn Marker"
+#    bl_description = "Place a spawn scenery item at every Slayer spawn."
+#    
+#    def execute(self, context):
 
-        print("Import from spawn_marker.blend...")
-        
-        # build file path:
-        script_folder_path = path.dirname(path.dirname(__file__))
-        p = bpy.utils.user_resource('SCRIPTS') + "\\addons\\halo_spawn_shop\\blend\\"
-        f = "spawn_marker.blend"
-        filepath = p+f
-        
-        with bpy.data.libraries.load(filepath) as (data_from, data_to):
-            data_to.objects = ["spawn_marker_nhe"]
-        
-        obj = data_to.objects[0]
-        bpy.context.collection.objects.link(obj)
-        
-        for mat in obj.data.materials:
-            if mat.name not in bpy.data.materials:
-                bpy.data.materials.append(mat)
-        
-        return {"FINISHED"}
+#        print("Import from spawn_marker.blend...")
+#        
+#        # build file path:
+#        script_folder_path = path.dirname(path.dirname(__file__))
+#        p = bpy.utils.user_resource('SCRIPTS') + "\\addons\\halo_spawn_shop\\blend\\"
+#        f = "spawn_marker.blend"
+#        filepath = p+f
+#        
+#        with bpy.data.libraries.load(filepath) as (data_from, data_to):
+#            data_to.objects = ["spawn_marker_nhe"]
+#        
+##        marker = data_to.objects[0]
+##        bpy.context.collection.objects.link(marker)
+#        
+#        # LINK TO 'Spawn Shop'
+#        if(marker.users_collection):
+#            parent = marker.users_collection[0]
+#            parent.objects.unlink(marker)
+#        SpawnShopCollection.objects.link(marker)
+#        
+#        marker.select_set(True)
+#        
+#        for mat in marker.data.materials:
+#            if mat.name not in bpy.data.materials:
+#                bpy.data.materials.append(mat)
+#        
+#        return {"FINISHED"}
 
 
     
 classes = (
     WM_ShowError,
-    Make_NHE_Marker,
+#    Make_NHE_Marker,
     CountSpawns,
 )
 
@@ -461,7 +481,7 @@ def register():
         
     bpy.types.Scene.sphere_detail_outer = bpy.props.IntProperty( # need another option for inner sphere levels
         name = "",
-        description = "Range: 3-6\nDefault: 4\n\nSet the number of subdivisions to\nperform when creating the spheres.\n4 really is enough.",
+        description = "Set the number of subdivisions to perform\nwhen creating the outer spheres.\n\nRange: 3-6\nDefault: 4\n\n4 really is enough.",
         default = 4,
         min = 3,
         max = 6
@@ -469,7 +489,7 @@ def register():
         
     bpy.types.Scene.sphere_detail_inner = bpy.props.IntProperty( # need another option for inner sphere levels
         name = "",
-        description = "Range: 3-6\nDefault: 4\n\nSet the number of subdivisions to\nperform when creating the spheres.\n4 really is enough.",
+        description = "Set the number of subdivisions to\nperform when creating the spheres.\n\nRange: 3-6\nDefault: 4\n\n4 really is enough.",
         default = 4,
         min = 3,
         max = 6

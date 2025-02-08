@@ -39,57 +39,106 @@ class GenerateRandoms(Operator):
     
     def draw(self, context):
         
-#        sphere = bpy.data.objects.get("Sample Sphere")
-#        SpawnShop = bpy.data.collections.get("Spawn Shop")
-        Spheres = bpy.data.collections.get("Spawn Spheres")
+        Spheres = bpy.context.scene.spheres_select
+        Shell = bpy.context.scene.shell_select
         
         total_spheres = 0
         tris = 0
     
         kinda_break = "Press OK if you're heading to the bathroom."
-        
-        for sphere in Spheres.objects:
-            total_spheres += 1
             
-            tris = len(sphere.data.loop_triangles)
-            
-            details = sphere.data.name.split("[")[1].split("]")[0].split(".")
-            self.detail_outer = int(details[0])
-            self.detail_inner = int(details[1])
-            
-            # this will be broken now... if we allow inner detail adjustment
-            # maybe just do triangle ranges, instead of exact?
-            # 4.3 = 1600
-            # 4.4 = 2560
-            # 5.4 = 6400
-            if tris == 640:
-#                self.detail_outer = 3
-                kinda_break = "Press OK if you're willing to unfocus your eyes for 30 seconds."
-            elif tris == 2560:
-#                self.detail_outer = 4
-                kinda_break = "Press OK if you're heading to the bathroom."
-            elif tris == 10240:
-#                self.detail_outer = 5
-                kinda_break = "Press OK if you acknowledge this is a bad idea."
-            elif tris == 40960:
-#                self.detail_outer = 6
-                kinda_break = "Press OK if you're absolutely insane."
-        
-        tris_formatted = "{:,}".format(tris)
-        
         layout = self.layout
-        layout.label(text="Warning!", icon="ERROR")
+        layout.label(text="Poly Count Warning!", icon="ERROR")
+                
+        shell_tris = len(Shell.data.loop_triangles)
         
-#        if total_spheres > 0:
-        row = layout.row()
-        row.label(text="         You're about to boolean "+str(total_spheres)+" spheres, each with "+tris_formatted+" triangles.") 
-        row = layout.row()
-        row.label(text="         Blender may stop responding during this operation!")        
-        row = layout.row()
-        row.label(text="         "+kinda_break)
-        
-        row = layout.row()
+        if Spheres:
+            for sphere in Spheres.objects:
+                total_spheres += 1
+                
+                tris = len(sphere.data.loop_triangles)
+                
+                details = sphere.data.name.split("[")[1].split("]")[0].split(".")
+                self.detail_outer = int(details[0])
+                self.detail_inner = int(details[1])
+                
+                    # 3.3 = 640
+                # 3.4 or 4.3 = 1600
+                # 3.5 or 5.3 = 5440
+                # 3.6 or 6.3 = 20800
+                
+                    # 4.3 = 1600
+                    # 4.4 = 2560
+                # 4.5 or 5.4 = 6400
+                # 4.6 or 6.4 = 21760
+                
+                    # 5.3 = 5440
+                    # 5.4 = 6400
+                    # 5.5 = 10240
+                # 5.6 or 6.5 = 25600
+                
+                    # 6.3 = 20800
+                    # 6.4 = 21760
+                    # 6.5 = 25600
+                # 6.6 = 40960
+                
+                # ranges: 640, 1600, 2560, 5440, 6400, 10240, 20800, 21760, 25600, 40960
+                
+                # 5.4 = 6400
+                if tris == 640:     # detail =  3.3
+                    kinda_break = "Press OK if you're willing to unfocus your eyes for 30 seconds." # 30s
+                elif tris == 1600:  # detail = 3.4 or 4.3
+                    kinda_break = "Press OK if you're about to do 60 situps as fast as you can." # 45s
+                elif tris == 2560:  # detail = 4.4
+                    kinda_break = "Press OK if you're heading to the bathroom." # 60s
+                elif tris == 5440:  # detail = 3.5 or 5.3
+                    kinda_break = "Press OK if you have some emails to reply to." # 120s
+                elif tris == 6400:  # detail = 4.5 or 5.4
+                    kinda_break = "Press OK if you're dog needs to pee." # 180s
+                elif tris == 10240: # detail = 5.5
+                    kinda_break = "Press OK if you acknowledge this is a bad idea." # 240s
+                elif tris == 20800: # detail = 3.6 or 6.3
+                    kinda_break = "Press OK if you're about to run to the grocery store." # 360s
+                elif tris == 21760: # detail = 4.6 or 6.4
+                    kinda_break = "Press OK if you're about to watch a Pixar short." # 420s
+                elif tris == 25600: # detail = 5.6 or 6.5
+                    kinda_break = "Press OK if you're about to learn how to solve the third layer of a Rubik's cube." # 480s
+                elif tris == 40960: # detail = 6.6
+                    kinda_break = "Press OK if you're absolutely insane." # 600s
             
+            tris_formatted = "{:,}".format(tris)
+            total_tris = total_spheres * tris
+            total_formatted = "{:,}".format(total_tris)
+            shell_tris_formatted = "{:,}".format(shell_tris)
+            
+            # old
+#            row = layout.row()
+#            row.label(text="         You're about to boolean "+str(total_spheres)+" spheres, each with "+tris_formatted+" triangles,")
+#            row = layout.row()
+#            row.label(text="         for a total of "+total_formatted+" triangles, against a shell with "+shell_tris_formatted+" triangles.")
+#            row = layout.row()
+#            row.label(text="         Blender may stop responding during this operation!")
+#            row = layout.row()
+#            row.label(text="         "+kinda_break)
+            
+            # new
+            row = layout.row()
+            row.label(text="             Spheres: "+total_formatted+" Triangles ("+str(total_spheres)+" spheres × "+tris_formatted+" triangles)")
+            row = layout.row()
+            row.label(text="                   Shell: "+shell_tris_formatted+" Triangles")
+            row = layout.row()
+            row.label(text="         Blender may stop responding during this operation!")
+            row = layout.row()
+            row.label(text="         "+kinda_break)
+            
+        else: # this shouldn't happen. already protected by invoke()
+            row = layout.row()
+            row.label(text="         No Spheres Collection selected!")
+            row = layout.row()
+            row.label(text="         "+kinda_break)
+            
+        row = layout.row()
+        
      
     def execute(self, context):       
         print("Go get a coffee.")
@@ -99,13 +148,14 @@ class GenerateRandoms(Operator):
         return {"FINISHED"}
     
     def invoke(self, context, event):
-        Spheres = bpy.data.collections.get("Spawn Spheres")
+        Spheres = bpy.context.scene.spheres_select
+        spheres_collection_name = Spheres.name
         if not Spheres:
-            self.report({"ERROR"},"Could not find 'Spawn Spheres' collection!")
+            self.report({"ERROR"},"No Spheres Collection selected!")
             return {"CANCELLED"}
         else:
             if len(Spheres.objects) == 0:
-                self.report({"ERROR"},"'Spawn Spheres' collection is empty!")
+                self.report({"ERROR"},"'"+spheres_collection_name+"' collection is empty!")
                 return {"CANCELLED"}
             else:
                 return context.window_manager.invoke_props_dialog(self, width=400)
@@ -122,69 +172,42 @@ class GenerateRandomsConfirm(Operator):
     
     def execute(self, context):
         print("Calculating randoms...")
-
-        detail_outer = self.sphere_detail_outer
-        detail_inner = self.sphere_detail_inner
         
-        found = False
-        
-#        SpawnShopCollection = bpy.context.scene.collection.children.get("Spawn Shop")
-        SpawnShopCollection = bpy.data.collections.get("Spawn Shop")
-#        SpawnSpheresCollection = SpawnShopCollection.children.get("Spawn Spheres")
-        SpawnSpheresCollection = bpy.data.collections.get("Spawn Spheres")
-        
-#        required_collections = 2
-#        found_collections = 0
-        
-        # the confirm box should have already protected against these not being found        
-#        if SpawnShopCollection is not None:
-#            print("'Spawn Shop' collection already exists, which is good. Proceeding.")
-#            found_collections += 1
-#        else:
-#            self.report({'ERROR'}, "Could not find 'Spawn Shop' collection!\nPlease run 'Shell Map' and 'Populate All Spawns' first.")
-#        
-#        if(SpawnSpheresCollection):
-#            print("'Spawn Spheres' collection already exists. Proceeding.")
-#            found_collections += 1
-#        else:
-#            self.report({'ERROR'}, "Could not find 'Spawn Spheres' collection!\nPlease run 'Shell Map' and 'Populate All Spawns' first.")
-#            
-#        if(found_collections == required_collections):
-#            print("Found all collections. Can proceed.")
-#        else:
-#            print("Some collections missing. Cannot proceed.")
-        
-        shelled_bsp = None
-        for obx in SpawnShopCollection.objects:
-            if obx.name == "BSP.shell":
-                bpy.context.view_layer.objects.active = obx
-                obx.select_set(True)
-                shelled_bsp = obx
-                
+        details = str(self.sphere_detail_outer)+"."+str(self.sphere_detail_inner)
         quality = bpy.context.scene.boolean_solver_enum.boolean_solver
-#        if(bpy.context.scene.use_exact):
-#            quality = 'EXACT'
         
-        
-        if(shelled_bsp is not None):
-            print("Found shelled!")
+        Spheres = bpy.context.scene.spheres_select
+        Shell = bpy.context.scene.shell_select
+        RandomsCollection = bpy.data.collections.get("Randoms")
+                
+        if Shell and Spheres:
+            print("Found Shell and Spheres!")
             bpy.ops.object.select_all(action='DESELECT')           
-            found = True
-            bpy.context.view_layer.objects.active = shelled_bsp
-            shelled_bsp.select_set(True)
-            boo = shelled_bsp.modifiers.new("Bootilt","BOOLEAN")
+
+            # create a clone
+            clone = Shell.copy()
+            clone.data = Shell.data.copy()
+            RandomsCollection.objects.link(clone)
+            bpy.context.view_layer.objects.active = clone
+            clone.select_set(True)
+            clone.name = "Randoms ["+details+"]"
+            
+            # add the modifier
+            boo = clone.modifiers.new("GenRand","BOOLEAN")
             boo.solver = quality
             boo.operand_type = 'COLLECTION'
-            boo.collection = SpawnSpheresCollection
-            shelled_bsp.name = "BSP.shell.rand."+str(detail_outer)+"."+str(detail_inner)
-            if(bpy.context.scene.apply_randoms_modifier):
-                bpy.ops.object.modifier_apply(modifier="Bootilt")
+            boo.collection = Spheres
+            
+            # apply if user desires
+            if bpy.context.scene.apply_randoms_modifier:
+                bpy.ops.object.modifier_apply(modifier="GenRand")
+                
+            # hide the original shell
+            Shell.hide_set(True)
         else:
 #            print("BSP.shell not found.")
-            bpy.ops.wm.show_error('INVOKE_DEFAULT',message="'BSP.shell' not found! Please run [Shell Map] first.")
+            bpy.ops.wm.show_error('INVOKE_DEFAULT',message="Please select a BSP shell and Spheres collection!")
 
-            
-        
         return {'FINISHED'}
     
     
@@ -211,16 +234,10 @@ def register():
         type = bpy.types.Object
     )
     bpy.types.Scene.spheres_select = bpy.props.PointerProperty(
-        name = "",
-        description = "Select the collection of Spawn Spheres to cut from the shell.",
+        name = "Spheres Collection",
+        description = "Select the collection of Spheres to cut from the shell.",
         type = bpy.types.Collection
     )
-    
-#    bpy.types.Scene.use_exact = bpy.props.BoolProperty(
-#        name = "Exact",
-#        description = "Uncheck for testing in 'Fast' mode, which\nis much quicker, but notably unreliable.",
-#        default = True
-#    )
 
 def unregister():
     from bpy.utils import unregister_class
@@ -230,4 +247,3 @@ def unregister():
     del bpy.types.Scene.apply_randoms_modifier
     del bpy.types.Scene.spheres_select
     del bpy.types.Scene.shell_select
-#    del bpy.types.Scene.use_exact

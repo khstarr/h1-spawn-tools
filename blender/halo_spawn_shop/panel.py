@@ -31,7 +31,7 @@ from .func import update_sphere_color, update_sphere_opacity, update_marker_colo
 
 class VIEW_3D_PT_halo_spawn_shop(Panel):
         
-    bl_label = "Spawn Shop    v0.8.6"
+    bl_label = "Spawn Shop    v0.8.8"
     bl_idname = "OBJECT_PT_SpawnShop"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI" # Called with N key
@@ -98,7 +98,6 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
             right.prop(context.scene, "sphere_detail_outer", text="") # need to add this option for inner sphere
             right.prop(context.scene, "sphere_detail_inner", text="") # need to add this option for inner sphere
             
-            
             # tri column with icons
             asp = panel.split(factor=0.12) # opacity XRAY OBJECT_HIDDEN color RESTRICT_COLOR_OFF COLOR RESTRICT_COLOR_ON
             lab = asp.column()
@@ -120,60 +119,31 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
             lab.prop(context.scene.marker_color_enum, "marker_color")
             lab.prop(context.scene, "marker_opacity", text="")
             lab.operator("object.add_marker", text="Add 1", icon="PMARKER_SEL") # OUTLINER_DATA_META SNAP_NORMAL
-            #rig.label(text="")
-            
-            
-            
-            
-            # dual add buttons
-#            lr = panel.split(factor=0.5)
-#            left = lr.column()
-#            right = lr.column()
-#            left.operator("object.add_sphere", text="+ Sphere", icon="MESH_CIRCLE")
-#            right.operator("object.add_marker", text="+ Marker", icon="PMARKER_SEL") # OUTLINER_DATA_META SNAP_NORMAL
-            
-            
-            
-            
-#            split = panel.split(factor=0.6)
-#            left = split.column()
-#            right = split.column()
-#            
-#            
-#            left.label(text="Sphere Detail:")
-#            right.prop(context.scene, "sphere_detail", text="") # need to add this option for inner sphere
-#            
-#            left.label(text="Sphere Color:")
-#            right.prop(context.scene.sphere_color_enum, "sphere_color")
-#            
-#            left.label(text="Marker Color:")
-#            right.prop(context.scene.marker_color_enum, "marker_color")
-#            
-#            left.label(text="Opacity (both):")
-#            right.prop(context.scene, "sphere_opacity", text="")
-            
-            
-#            row = panel.row()                
-#            row.operator("object.add_marker", icon = "PMARKER_SEL") # PMARKER_ACT PMARKER_SEL
-#            row.operator("object.add_sphere", icon = "MESH_CIRCLE")
-            # other icons: SHADING_RENDERED NODE_MATERIAL SHADING_RENDERED MESH_CIRCLE
+
             if context.scene.slayer_count == 0 :
                 panel.operator("object.populate_spawns", icon = "POINTCLOUD_DATA", text="Populate All Spawns")
             else:
                 panel.operator("object.populate_spawns", icon = "POINTCLOUD_DATA", text="Populate "+str(context.scene.slayer_count)+" Spawns")
+            
             split = panel.split(factor=0.75)
             left = split.column()
             right = split.column()
-            left.label(text="Purge Orphans:")
+            #left.label(text="Purge Orphans:")
             right.operator("object.purge_orphans", text="", icon="ORPHAN_DATA") # ORPHAN_DATA INFO_LARGE
+#            left.operator("object.commute_markers", text=str(context.scene.slayer_count), icon="COPYDOWN")
+            left.operator("object.commute_markers", text="", icon="COPYDOWN")
+            
+            panel.prop(context.scene.tag_input, "scenery_path", text="", icon="TAG")
             # other icons: SHADING_RENDERED NODE_MATERIAL POINTCLOUD_DATA GEOMETRY_NODES ONIONSKIN_ON
 
 # STEP 3    
         header, panel = layout.panel("rapa", default_closed=False)
         header.label(text="Randoms Geometry")#, icon="EVENT_NDOF_BUTTON_3") # EVENT_NDOF_BUTTON_3 IPO_CUBIC EVENT_THREEKEY
         header.operator("object.how_randoms", text="", icon="INFO")
-#        header.scale_y = 1.25
+        #header.scale_y = 1.25
         if panel:
+            panel.prop(context.scene, "shell_select", text="", icon="MOD_EDGESPLIT")
+            panel.prop(context.scene, "spheres_select", text="", icon="POINTCLOUD_DATA")
             
             row = panel.row()
             split = panel.split(factor=0.55)
@@ -183,13 +153,6 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
             row = right.row()
             row.prop(context.scene.boolean_solver_enum, "boolean_solver", expand=True)
             
-            split = panel.split(factor=0.35)
-            left = split.column()
-            right = split.column()
-#            left.label(text="Shell:")
-#            right.prop(context.scene, "shell_select", text="")
-#            left.label(text="Spheres:")
-#            right.prop(context.scene, "spheres_select", text="")
             panel.prop(context.scene, "apply_randoms_modifier", text="Apply When Completed")
             panel.operator("object.generate_randoms", icon = "HOLDOUT_ON")
 
@@ -197,7 +160,7 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
         header, panel = layout.panel("inpa", default_closed=False)
         header.label(text="Gameplay Simulation")#, icon="EVENT_NDOF_BUTTON_4") # EVENT_NDOF_BUTTON_4 IPO_QUART EVENT_FOURKEY
         header.operator("object.how_simulate", text="", icon="INFO")
-#        header.scale_y = 1.25
+        #header.scale_y = 1.25
         if panel:
             
             row = panel.row()
@@ -207,11 +170,18 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
             right = split.column()
             left.prop(context.scene, "auto_respawn", text="Auto-respawn")
             right.operator("object.generate_spartans", text="+", icon="COMMUNITY")
+            
+            # add an enum here for Viewport behavior:
+            # Options:
+            # Don't Move Viewport
+            # Look at Spartan
+            # Fly to Spartan
 
             row = panel.row(align=True)
             row.label(text="", icon="SEQUENCE_COLOR_05")
-            row.label(text="", icon="EVENT_ONEKEY")
-            row.prop(context.scene, "player_1_select", text="")
+#            row.label(text="", icon="EVENT_ONEKEY")
+            row.operator("object.view_spartan", text="", icon="EVENT_ONEKEY").player = 1
+            row.prop(context.scene, "player_1_select", text="", icon="USER")
             if bpy.context.scene.player_1_select:
                 if bpy.context.scene.player_1_select.hide_get():
                     row.label(text="", icon="RIGHTARROW_THIN")
@@ -221,8 +191,9 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
                 
             row = panel.row(align=True)
             row.label(text="", icon="SEQUENCE_COLOR_05")
-            row.label(text="", icon="EVENT_TWOKEY")
-            row.prop(context.scene, "player_2_select", text="")
+#            row.label(text="", icon="EVENT_TWOKEY")
+            row.operator("object.view_spartan", text="", icon="EVENT_TWOKEY").player = 2
+            row.prop(context.scene, "player_2_select", text="", icon="USER")
             if bpy.context.scene.player_2_select:
                 if bpy.context.scene.player_2_select.hide_get():
                     row.label(text="", icon="RIGHTARROW_THIN")
@@ -232,8 +203,9 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
 
             row = panel.row(align=True)
             row.label(text="", icon="SEQUENCE_COLOR_01")
-            row.label(text="", icon="EVENT_THREEKEY")
-            row.prop(context.scene, "player_3_select", text="")
+#            row.label(text="", icon="EVENT_THREEKEY")
+            row.operator("object.view_spartan", text="", icon="EVENT_THREEKEY").player = 3
+            row.prop(context.scene, "player_3_select", text="", icon="USER")
             if bpy.context.scene.player_3_select:
                 if bpy.context.scene.player_3_select.hide_get():
                     row.label(text="", icon="RIGHTARROW_THIN")
@@ -243,8 +215,9 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
                 
             row = panel.row(align=True)
             row.label(text="", icon="SEQUENCE_COLOR_01")
-            row.label(text="", icon="EVENT_FOURKEY")
-            row.prop(context.scene, "player_4_select", text="")
+#            row.label(text="", icon="EVENT_FOURKEY")
+            row.operator("object.view_spartan", text="", icon="EVENT_FOURKEY").player = 4
+            row.prop(context.scene, "player_4_select", text="", icon="USER")
             if bpy.context.scene.player_4_select:
                 if bpy.context.scene.player_4_select.hide_get():
                     row.label(text="", icon="RIGHTARROW_THIN")
@@ -252,10 +225,7 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
                     row.operator("object.kill_spartan", text="", icon="GHOST_DISABLED").player = 4 
                 row.operator("object.spawn_spartan", text="", icon=self.countdowns[context.scene.sec_p4]).spawner = 4 # FILE_REFRESH
 
-# EXTRAS
-#            row = layout.row()
-#            row.operator("object.paint_spartans", icon="BRUSH_DATA") # not in use
-            
+# EXTRAS            
             row = panel.row()
             split = panel.split(factor=0.5)
             left = split.column()
@@ -331,6 +301,13 @@ class CustomProperties(bpy.types.PropertyGroup):
             ('EXACT','Exact',"Use 'Exact' when running the boolean modifier to cut spheres from shell.")
         ]
     )
+    
+    scenery_path: bpy.props.StringProperty(
+        name="",
+        description="Set the path for the [marker].scenery",
+        default="scenery\spawn_marker_nhe\spawn_marker_nhe.scenery",
+        maxlen=1024,
+    )
         
     
 
@@ -346,6 +323,12 @@ def register():
         register_class(cls)
         
     bpy.types.Scene.slayer_count = bpy.props.IntProperty()
+
+    bpy.types.Scene.tag_input = bpy.props.PointerProperty(
+        type = CustomProperties,
+        name = "Marker Scenery Path",
+        description = ""
+    )
     
     bpy.types.Scene.sphere_color_enum = bpy.props.PointerProperty(
         type = CustomProperties,
@@ -378,6 +361,8 @@ def unregister():
         unregister_class(cls)
 
     del bpy.types.Scene.slayer_count
+    del bpy.types.Scene.tag_input
+    
     del bpy.types.Scene.sphere_color_enum
     del bpy.types.Scene.marker_color_enum
     del bpy.types.Scene.perspective_enum

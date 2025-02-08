@@ -42,7 +42,7 @@ class HowTo(Operator):
 
 
 class WM_HowTo(Operator):
-    bl_label = "Spawn Shop v0.8.6 - Guide"
+    bl_label = "Spawn Shop v0.8.8 - Guide"
     bl_idname = "wm.howto"
         
     def draw(self, context):
@@ -61,7 +61,7 @@ class WM_HowTo(Operator):
         row.label(text="  basic process for producing spawn spheres and 'randoms' geometry is outlined below. For a more in-depth look")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  and detailed explanations, click the ⓘ icon to the right of each section of the add-on panel.")
+        row.label(text="  and detailed explanations, click the [i] icon to the right of each section of the add-on panel.") # (i) ⓘ
         row = box.row()
         row.scale_y = 0.5            
                     
@@ -86,7 +86,7 @@ class WM_HowTo(Operator):
             row = box.row()
             row = box.row()
             row.scale_y = 0.5
-            row.label(text="  Add Spawn Spheres and Markers to all the PSLs. Sphere detail increases exponentially with each option, considerably")
+            row.label(text="  Add Spawn Spheres and Markers to all the PSLs. Sphere detail increases exponentially with each step, considerably")
             row = box.row()
             row.scale_y = 0.5
             row.label(text="  increasing the time to calculate 'Randoms', so use caution adjusting it above 4.")
@@ -147,7 +147,7 @@ class HowShell(Operator):
         box = self.layout
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  Your level may consist of several geometry clusters, and lots of clutter, such as light-emitting")
+        row.label(text="  Your map may consist of several geometry clusters, and lots of clutter, such as light-emitting")
         row = box.row()
         row.scale_y = 0.5
         row.label(text="  strips, floating panels, ladders, and glass. Clone the geometry that defines your sealed world,")
@@ -195,7 +195,7 @@ class HowPopulate(Operator):
         row.label(text="  use the [Populate All Spawns] button, as each object will be automatically renamed and linked to")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  its parent spawn point, adopting its transform. However, this can be done manually, too: Add and")
+        row.label(text="  a parent spawn point, adopting its transform. However, this can be done manually, too: Add and")
         row = box.row()
         row.scale_y = 0.5
         row.label(text="  select a Sphere or Marker, then select a 'Player Starting Location', press CTRL+P, and choose")
@@ -207,16 +207,16 @@ class HowPopulate(Operator):
         row.label(text="  ")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  NOTE: Spheres must be in a collection called 'Spawn Spheres' in order to be considered during")
+        row.label(text="  NOTE: Outer sphere radius is 60 feet, and represents the team influence distance. Inner sphere")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  the generation of 'Randoms' geometry.")
+        row.label(text="  radius is 10 feet (100 units), representing guaranteed blocking distance.")
         row = box.row()
         row.scale_y = 0.5
         row.label(text="  ")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  Set the Sphere detail before adding them (remember: each level is exponentially more triangles).")
+        row.label(text="  Set the Sphere detail before populating (remember: each level makes exponentially more triangles).")
         row = box.row()
         row.scale_y = 0.5
         row.label(text="  You can adjust the color and opacity of Spheres and Markers before or after they've been created.")
@@ -228,7 +228,7 @@ class HowPopulate(Operator):
         row.label(text="  objects will move with it. If you need to start over, delete the Spheres and Markers collections, and")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  click the [Purge Orphans </3] button to clean up the leftover mesh and materials. (Change your")
+        row.label(text="  click the Purge Orphans [</3] button to clean up the leftover mesh and materials. (Change your")
         row = box.row()
         row.scale_y = 0.5
         row.label(text="  'Outliner' list view to 'Unused Data' to see orphans).")
@@ -328,7 +328,7 @@ class HowSimulate(Operator):
         row.label(text="  provided ghost buttons), then move P1 and P3 around the map to see how the spheres and markers fade")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  in and out. If 'Perspective' is set to 'Blue', the blue Spartan will increase a spawn point's odds of selection")
+        row.label(text="  in and out. If 'Perspective' is set to 'Blue', a blue Spartan will increase a spawn point's odds of selection")
         row = box.row()
         row.scale_y = 0.5
         row.label(text="  (force the spawn) as he moves closer (within 60 feet), but will block it within 10 feet. A red Spartan will")
@@ -355,10 +355,10 @@ class HowSimulate(Operator):
         row.label(text="  To see actual spawn selection in action, you can respawn the dead (hidden) players (with the 'Kill' button")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  and 'Auto-respawn' on, which counts down from 5 before respawning, or use the provided 🗘 buttons for")
+        row.label(text="  while 'Auto-respawn' is on, which counts down from 5 before respawning, or use the provided 🗘 buttons")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  instant respawn) and watch where they reappear. Use these features to get a full understanding of team")
+        row.label(text="  for instant respawn) and watch where they reappear. Use these features to get a full understanding of team")
         row = box.row()
         row.scale_y = 0.5
         row.label(text="  and enemy spawn influence while designing new, competitive 2v2 maps.")

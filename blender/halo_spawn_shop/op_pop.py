@@ -37,8 +37,11 @@ class AddSphere(bpy.types.Operator):
     def execute(self, context):
         # Create a new material (if necessary) and new sphere
         color = bpy.context.scene.sphere_color_enum.sphere_color
-        bout = MakeMat("SphereMat_",color)
-        MakeSphere(bout)
+        sphere_mat = MakeMat("SampleSphere_",color)
+        
+        sdout = bpy.context.scene.sphere_detail_outer
+        sdin = bpy.context.scene.sphere_detail_inner
+        MakeSphere(sphere_mat,sdout,sdin)
         
         return {"FINISHED"}    
 
@@ -57,10 +60,13 @@ class AddMarker(bpy.types.Operator):
         else:
             print("'Sample Marker' not found. Creating...")
             
-            # Create a new material and new marker
             color = bpy.context.scene.marker_color_enum.marker_color
-            bout = MakeMat("MarkerMat_",color)
-            MakeMarker(bout)
+            MakeNHEMarker(color)
+            
+            # old vert-by-vert mesh marker:
+            # Create a new material and new marker
+#            marker_mat = MakeMat("MarkerMat_",color)
+#            MakeMarker(marker_mat)
         
         return {"FINISHED"}
  
@@ -75,7 +81,7 @@ class PopulateSpawns(bpy.types.Operator):
         print("Generating spheres and markers...")
         
         scene = bpy.context.scene
-                
+        
         # look for 'Spawn Shop'
         SpawnShopCollection = bpy.data.collections.get("Spawn Shop")
         if SpawnShopCollection:
@@ -84,51 +90,46 @@ class PopulateSpawns(bpy.types.Operator):
             SpawnShopCollection = bpy.data.collections.new("Spawn Shop")
             bpy.context.scene.collection.children.link(SpawnShopCollection)
         
-        # look for 'Spawn Spheres'
+        # look for 'Spheres'
         make_spheres = True
-        SpawnSpheresCollection = SpawnShopCollection.children.get("Spawn Spheres")
-        if SpawnSpheresCollection:
-            print("Spawn Spheres collection already exists!")
-            # how many children
-            if len(SpawnSpheresCollection.objects) > 0 : 
-                print("'Spawn Spheres' collection has children!")
-#                error_line_one = "'Spawn Spheres' collection not empty!"
-#                error_line_two = "Please delete the collection first, or move on to Step 3."
-#                self.report({'ERROR'},error_line_one+"\n"+error_line_two)
-#                return {"CANCELLED"} # canceling because if these are here, markers likely are also. if not,
-                                     # user only half deleted stuff, which means we don't know what to trust
-                make_spheres = False
-                error_line_one = "'Spawn Spheres' collection already exists and is not empty. As such, no "
-                error_line_two = "new spheres were created. Please double check you have what you need."
-                self.report({"ERROR"},error_line_one+"\n"+error_line_two)
-            else:
-                print("...but it's empty. Carry on.")
-        else:
-            SpawnSpheresCollection = bpy.data.collections.new("Spawn Spheres")
-            SpawnShopCollection.children.link(SpawnSpheresCollection)
+        sdout = bpy.context.scene.sphere_detail_outer
+        sdin = bpy.context.scene.sphere_detail_inner
+        details = str(sdout)+"."+str(sdin)
+        spheres_collection_name = "Spheres ["+details+"]"
         
-        # look for 'Spawn Markers'
-        make_markers = True
-        SpawnMarkersCollection = SpawnShopCollection.children.get("Spawn Markers")
-        if SpawnMarkersCollection:
-            print("Spawn Markers collection already exists!")
+        SpheresCollection = SpawnShopCollection.children.get(spheres_collection_name)
+        if SpheresCollection:
+            print("'"+spheres_collection_name+"' collection already exists!")
             # how many children
-            if len(SpawnMarkersCollection.objects) > 0 :
-                print("'Spawn Markers' collection has children!")
-#                error_line_one = "'Spawn Markers' collection not empty!"
-#                error_line_two = "Please delete the collection first, or move on to Step 3."
-#                self.report({'ERROR'},error_line_one+"\n"+error_line_two)
-#                return {"CANCELLED"} # canceling because if these are here, spheres likely are also. if not,
-                                     # user only half deleted stuff, which means we don't know what to trust
-                make_markers = False
-                error_line_one = "'Spawn Markers' collection already exists and is not empty. As such, no "
-                error_line_two = "new markers were created. Please double check you have what you need."
+            if len(SpheresCollection.objects) > 0 : 
+                print("'"+spheres_collection_name+"' collection has children!")
+                make_spheres = False
+                error_line_one = "'"+spheres_collection_name+"' already exists and is not empty. "
+                error_line_two = "No new spheres were created!"
                 self.report({"ERROR"},error_line_one+"\n"+error_line_two)
             else:
                 print("...but it's empty. Carry on.")
         else:
-            SpawnMarkersCollection = bpy.data.collections.new("Spawn Markers")
-            SpawnShopCollection.children.link(SpawnMarkersCollection)
+            SpheresCollection = bpy.data.collections.new(spheres_collection_name)
+            SpawnShopCollection.children.link(SpheresCollection)
+        
+        # look for 'Markers'
+        make_markers = True
+        MarkersCollection = SpawnShopCollection.children.get("Markers")
+        if MarkersCollection:
+            print("'Markers' collection already exists!")
+            # how many children
+            if len(MarkersCollection.objects) > 0 :
+                print("'Markers' collection has children!")
+                make_markers = False
+                error_line_one = "'Markers' collection already exists and is not empty."
+                error_line_two = "No new markers were created!"
+                self.report({"ERROR"},error_line_one+"\n"+error_line_two)
+            else:
+                print("...but it's empty. Carry on.")
+        else:
+            MarkersCollection = bpy.data.collections.new("Markers")
+            SpawnShopCollection.children.link(MarkersCollection)
         
         # look for 'Player Starting Locations' (imported)
         PSL = bpy.data.collections.get("Player Starting Locations") 
@@ -141,13 +142,14 @@ class PopulateSpawns(bpy.types.Operator):
             sphere_color = bpy.context.scene.sphere_color_enum.sphere_color
             marker_color = bpy.context.scene.marker_color_enum.marker_color
             
-            bout = MakeMat("SphereMat_",sphere_color)
-            markmat = MakeMat("MarkerMat_",marker_color)
+            sphere_mat = MakeMat("SampleSphere_",sphere_color)
+#            markmat = MakeMat("MarkerMat_",marker_color)
             
             if make_spheres:
-                SampleSphere = MakeSphere(bout)
+                SampleSphere = MakeSphere(sphere_mat,sdout,sdin)
+                
             if make_markers:
-                SampleMarker = MakeMarker(markmat)
+#                SampleMarker = MakeMarker(markmat)
                 NHEMarker = MakeNHEMarker(marker_color)
                 # how to edit nhe marker opacity:
 #                bpy.data.materials["spawn_marker_nhe"].node_tree.nodes["Mix Shader"].inputs[0].default_value = 0
@@ -179,26 +181,25 @@ class PopulateSpawns(bpy.types.Operator):
                         NewSphere.data = SampleSphere.data.copy()
                         NewSphere.location = Spawn.location
                         NewSphere.rotation_euler = Spawn.rotation_euler
-                        NewSphere.name = "SpawnSphere_"+n
+                        NewSphere.name = "SpawnSphere["+details+"]_"+n
+                        NewSphere.data.name = "sphere_mesh["+details+"]_"+n
                         
-                        detail = SampleSphere.data.name.split("[")[1].split("]")[0]
-#                        detail = detail.split("]")[0]
-#                        sdout = detail.split(".")[0]
-#                        sdin = detail.split(".")[1]
-                        NewSphere.data.name = "SpawnSphere_Mesh_["+detail+"]_"+n
-                        
-                        dupmat = bout.copy()
-                        existing = bpy.data.materials.get("SphereMat_"+n)
-                        if existing:
-                            bpy.data.materials.remove(existing)
-                        dupmat.name = "SphereMat_"+n
-                        NewSphere.data.materials[0] = dupmat
+                        # assign material to this spawn number
+                        mat = bpy.data.materials.get("SphereMat_"+n)
+                        if not mat:
+                            mat = sphere_mat.copy()
+                            mat.name = "SphereMat_"+n
+                        NewSphere.data.materials[0] = mat
+        # ALERT: Potential Bug
+        # if user adds new spawns, or changes the spawn numbers,
+        # wrong spheres will illuminate during simulation. advise user to
+        # wipe spheres collection and purge orphans if they see this
 
-                        # ADD SPHERE TO 'Spawn Spheres' COLLECTION, UNLINK FROM 'Scene Collection'
+                        # ADD SPHERE TO 'Spheres [X.X]' COLLECTION, UNLINK FROM 'Scene Collection'
                         if NewSphere.users_collection:
                             parent = NewSphere.users_collection[0]
                             parent.objects.unlink(NewSphere)
-                        SpawnSpheresCollection.objects.link(NewSphere)
+                        SpheresCollection.objects.link(NewSphere)
                         
                         NewSphere.parent = Spawn
                         NewSphere.matrix_parent_inverse = Spawn.matrix_world.inverted()
@@ -212,7 +213,7 @@ class PopulateSpawns(bpy.types.Operator):
                         NewMarker.location = Spawn.location
                         NewMarker.rotation_euler = Spawn.rotation_euler
                         NewMarker.name = "SpawnMarker_"+n
-                        NewMarker.data.name = "SpawnMarker_Mesh_"+n
+                        NewMarker.data.name = "marker_mesh_"+n
                         
                         # if using SampleMarker:
 #                        dupmat = markmat.copy()
@@ -231,15 +232,27 @@ class PopulateSpawns(bpy.types.Operator):
 #                        dupmat.use_backface_culling = True
 
                         
-                        # MOVE SPAWN MARKER TO 'Spawn Markers' COLLECTION, UNLINK FROM 'Scene Collection'
+                        # MOVE SPAWN MARKER TO 'Markers' COLLECTION, UNLINK FROM 'Scene Collection'
                         if NewMarker.users_collection:
                             parent = NewMarker.users_collection[0]
                             parent.objects.unlink(NewMarker)
-                        SpawnMarkersCollection.objects.link(NewMarker)
+                        MarkersCollection.objects.link(NewMarker)
                         
                         # MAKE SPAWN MARKER A CHILD OF ITS RESPECTIVE Player Starting Location
                         NewMarker.parent = Spawn
                         NewMarker.matrix_parent_inverse = Spawn.matrix_world.inverted()
+                        
+                        # tag marker as a scenery item for inclusion in the .scenario upon export
+                        # user should supply this path? ---\
+                        tag_path = context.scene.tag_input.scenery_path
+                        NewMarker.tag_object.tag_path = tag_path
+                        
+#                        SceneryCollection = bpy.data.collections.get("Scenery")
+#                        if SceneryCollection:
+#                            SceneryCollection.objects.link(NewMarker)
+                        
+                        # link to frame:
+                        # don't know how to link to frame
 
                 elif Spawn.tag_player_starting_location.type_0 in ctfSpawnIndices:
                     ctf_count += 1
@@ -249,18 +262,23 @@ class PopulateSpawns(bpy.types.Operator):
             print("Slayer spawns:",len(SlayerSpawns))
             print("CTF spawns:",len(CTFSpawns))
             
+            
+            
             # delete samples
             if make_spheres:
+                # link SpheresCollection to Randoms Boolean select    
+                bpy.context.scene.spheres_select = SpheresCollection
+                
                 sphere_mesh = SampleSphere.data.name
                 bpy.data.objects.remove(SampleSphere, do_unlink=True)
                 if bpy.data.meshes[sphere_mesh]:
                     bpy.data.meshes.remove(bpy.data.meshes[sphere_mesh])
             
             if make_markers:
-                marker_mesh = SampleMarker.data.name
-                bpy.data.objects.remove(SampleMarker, do_unlink=True)
-                if bpy.data.meshes[marker_mesh]:
-                    bpy.data.meshes.remove(bpy.data.meshes[marker_mesh])
+#                marker_mesh = SampleMarker.data.name
+#                bpy.data.objects.remove(SampleMarker, do_unlink=True)
+#                if bpy.data.meshes[marker_mesh]:
+#                    bpy.data.meshes.remove(bpy.data.meshes[marker_mesh])
                     
                 nhe_marker_mesh = NHEMarker.data.name
                 bpy.data.objects.remove(NHEMarker, do_unlink=True)
@@ -273,12 +291,34 @@ class PopulateSpawns(bpy.types.Operator):
         
         return {'FINISHED'}
 
+class CommuteMarkers(bpy.types.Operator):
+    bl_idname = "object.commute_markers"
+    bl_label = "Add Markers to Scenery Palette"
+    bl_description = """
+Move markers to the 'Scenery' collection and tag them with the below path.
+This is necessary in order to include them in the exported .scenario"""
+    
+    def execute(self, context):
+#        print("gonna",bpy.context.scene.tag_input.scenery_path)
+                   
+        SceneryCollection = bpy.data.collections.get("Scenery")
+        MarkersCollection = bpy.data.collections.get("Markers")
+        
+        
+        if SceneryCollection and MarkersCollection:
+            for Marker in MarkersCollection.objects:
+                SceneryCollection.objects.link(Marker)
+#                MarkersCollection.objects.unlink(Marker)
+        
+        return {"FINISHED"}
 
 
 class PurgeOrphans(bpy.types.Operator):
     bl_idname = "object.purge_orphans"
-    bl_label = ""
-    bl_description = "Removes orphaned meshes and materials\nafter their parents were manually deleted."
+    bl_label = "Purge Orphans"
+    bl_description = """
+Remove orphaned meshes and materials
+after their parents were manually deleted."""
 
     def execute(self, context):
         
@@ -287,8 +327,12 @@ class PurgeOrphans(bpy.types.Operator):
             'Sample Marker',
             'SpawnSphere',
             'SpawnMarker',
+            'sphere_mesh',
+            'marker_mesh',
             'BSP_Mesh',
             'BSP.shell',
+            'shell_mesh',
+            'Randoms',
             'P1',
             'P2',
             'P3',
@@ -326,6 +370,7 @@ class PurgeOrphans(bpy.types.Operator):
                     bpy.data.meshes.remove(block)
         
         delete_mats = [
+            'SampleSphere_',
             'SpawnMat',
             'SphereMat',
             'MarkerMat',
@@ -375,7 +420,8 @@ classes = (
     AddSphere,
     AddMarker,
     PopulateSpawns,
-    PurgeOrphans
+    PurgeOrphans,
+    CommuteMarkers
 )
 
 
@@ -383,27 +429,9 @@ def register():
     from bpy.utils import register_class
     for cls in classes:
         register_class(cls)
-        
-    bpy.types.Scene.outer_segments = bpy.props.IntProperty(
-        name = "",
-        description = "Number of segments for the 6-meter-radius\nouter sphere (spawn influence zone)",
-        default = 32,
-        min = 8,
-        max = 64
-    )
-    bpy.types.Scene.inner_segments = bpy.props.IntProperty(
-        name = "",
-        description = "Number of segments for the 1-meter-radius\ninner sphere (spawn blocking zone)",
-        default = 24,
-        min = 8,
-        max = 64
-    )
 
 
 def unregister():
     from bpy.utils import unregister_class
     for cls in classes:
         unregister_class(cls)
-        
-    del bpy.types.Scene.outer_segments
-    del bpy.types.Scene.inner_segments

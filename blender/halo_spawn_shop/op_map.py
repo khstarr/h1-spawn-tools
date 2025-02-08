@@ -47,12 +47,18 @@ class ShellMap(Operator):
             
             # set up shop
             SpawnShopCollection = bpy.data.collections.get("Spawn Shop")
-            
             if(SpawnShopCollection):
                 print("Spawn Shop container already exists!")
             else:
                 SpawnShopCollection = bpy.data.collections.new("Spawn Shop")
                 bpy.context.scene.collection.children.link(SpawnShopCollection)
+                
+            RandomsCollection = SpawnShopCollection.children.get("Randoms")
+            if RandomsCollection:
+                print("'Randoms' collection already exists!")
+            else:
+                RandomsCollection = bpy.data.collections.new('Randoms')
+                SpawnShopCollection.children.link(RandomsCollection)
                             
             clone = selected_bsp.copy()
             clone.data = selected_bsp.data.copy()
@@ -94,30 +100,36 @@ class ShellMap(Operator):
             shelled = bpy.context.active_object           
             shelled.data.materials.clear()
             
-            pink = bpy.data.materials.new(name="PinkShell")
-            pink.use_nodes = True
+            shell_mat = bpy.data.materials.get("Shell")
+            if(shell_mat):
+                print("Shell material already exists!")
+            else:
+                shell_mat = bpy.data.materials.new(name="Shell")
+                shell_mat.use_nodes = True
             
-            ntree = pink.node_tree
+            ntree = shell_mat.node_tree
             bsdf = ntree.nodes.get("Principled BSDF", None)
             if bsdf is None:
-                bsdf = pink.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
+                bsdf = shell_mat.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
                 
-            bsdf = pink.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
+            bsdf = shell_mat.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
             bsdf.inputs['Base Color'].default_value = (1, 0.2, 0.9, 1) # Pink color
             bsdf.inputs['Alpha'].default_value = 0.25 # Transparency
-            output = pink.node_tree.nodes.get('Material Output')
-            pink.node_tree.links.new(bsdf.outputs['BSDF'], output.inputs['Surface'])
+            output = shell_mat.node_tree.nodes.get('Material Output')
+            shell_mat.node_tree.links.new(bsdf.outputs['BSDF'], output.inputs['Surface'])
 
-            shelled.data.materials.append(pink)
+            shelled.data.materials.append(shell_mat)
             
             bpy.context.object.active_material.surface_render_method = 'BLENDED'
             
             clone.name = "BSP.shell"
-            clone.data.name = "BSP_Mesh"
+            clone.data.name = "shell_mesh"
             
-            # MOVE CLONED / SHELLED MAP TO Spawn Shop
+            # MOVE CLONED / SHELLED MAP TO Randoms colletion
             bpy.context.scene.collection.objects.unlink(clone)
-            SpawnShopCollection.objects.link(clone)
+            RandomsCollection.objects.link(clone)
+            
+            # select the new object for the randoms boolean
             bpy.context.scene.shell_select = clone
             
         else:

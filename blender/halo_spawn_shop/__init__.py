@@ -27,7 +27,7 @@
 bl_info = {
     "name": "Halo Spawn Shop",
     "author": "insidi0us",
-    "version": (0,8,6),
+    "version": (0,8,8),
     "blender": (4,3,2),
     "location": "View3D > Tool",
     "description": "Halo 1 spawn engine analysis tool.",
@@ -44,7 +44,7 @@ from . import op_how
 from . import op_map
 from . import op_pop
 from . import op_rand
-from . import op_spar
+from . import op_sim
 from . import panel
 
 import importlib 
@@ -59,7 +59,7 @@ importlib.reload(op_how)
 importlib.reload(op_map)
 importlib.reload(op_pop)
 importlib.reload(op_rand)
-importlib.reload(op_spar)
+importlib.reload(op_sim)
 importlib.reload(panel)
 #
 
@@ -74,7 +74,7 @@ def register():
     op_map.register()
     op_pop.register()
     op_rand.register()
-    op_spar.register()
+    op_sim.register()
     panel.register()
 
 def unregister():
@@ -83,7 +83,7 @@ def unregister():
     op_map.unregister()
     op_pop.unregister()
     op_rand.unregister()
-    op_spar.unregister()
+    op_sim.unregister()
     panel.unregister()
 
 if __name__ == "__main__":
