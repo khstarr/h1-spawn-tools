@@ -35,7 +35,7 @@ Expand the newly-added Spawn Shop widget in the Viewport and click on the *How T
 First, you will need to install the included custom spawn marker scenery tags. Copy */tags/scenery/spawn_marker_nhe/* to your current tags folder.
 
 > [!NOTE]
-> As of 2025/02/10, **Invader** and the accompanying **injector.bat** are no longer required for spawn marker injection. These assets are still included in the repository, but may be removed in the future. Instructions for Invader have been moved to the bottom of this ReadMe.
+> As of 2025/02/10, **Invader** and the accompanying **injector.bat** are no longer required for spawn marker injection. Instructions for these assets have been removed. The assets themselves are still included in the repository, but may be removed in the future.
 
 Markers can now be added to a scenario right in blender, with two clicks of a button. First populate the map with Spheres and Markers, then click the [Scenery] button in the "Populate The Map" section to move them to the Scenery collection and tag them appropriately.
 
@@ -48,10 +48,10 @@ Markers can now be added to a scenario right in blender, with two clicks of a bu
 * Special thanks to Snowy for [Invader](https://github.com/SnowyMouse/invader)
 * Special thanks to insidi0us, Mintograde and ChaosTheory for reverse-engineering the game's spawn selection logic
 
-  [^1]:Next, install one of the legacy versions of Invader included in the /_redist/ folder for compatibility (technically, only *invader-edit.exe* is required). Be sure to back up any previous Invader installations (if applicable). During testing, Invader was installed in the same location as */data/* and */tags/* directories (typically the *Chelan_1* folder). Finally, place **injector.bat** in the same folder as Invader (which should be in the same location as your */data/* & */tags/* folders).
+<!--Next, install one of the legacy versions of Invader included in the /_redist/ folder for compatibility (technically, only *invader-edit.exe* is required). Be sure to back up any previous Invader installations (if applicable). During testing, Invader was installed in the same location as */data/* and */tags/* directories (typically the *Chelan_1* folder). Finally, place **injector.bat** in the same folder as Invader (which should be in the same location as your */data/* & */tags/* folders).
 
 When running **injector.bat**, you will be prompted to specify your */tags/* folder and the path equivalent of a */levels/test/* directory. You will then be prompted to select a scenario tag from the specified directory (the script will automatically make a copy and rename it based on UNIX timestamp).
 
 Once a scenario tag has been selected, several options are available. In this case, select **[4] Inject spawn markers**. The script will then use *invader-edit* to iterate through all spawn points enabled for Slayer gametypes, and place the spawn marker scenery object at each location.
 
-When finished, simply exit the command line interface and verify the scenery object placements in Sapien.
+When finished, simply exit the command line interface and verify the scenery object placements in Sapien.-->
