@@ -37,7 +37,7 @@ First, you will need to install the included custom spawn marker scenery tags. C
 > [!NOTE]
 > As of 2025/02/10, **Invader** and the accompanying **injector.bat** are no longer required for spawn marker injection. Instructions for these assets have been removed. The assets themselves are still included in the repository, but may be removed in the future.
 
-Markers can now be added to a scenario right in blender, with two clicks of a button. First populate the map with Spheres and Markers, then click the [Scenery] button in the "Populate The Map" section to move them to the Scenery collection and tag them appropriately.
+Markers can now be added to a scenario right in blender, with two clicks of a button. In the "Populate The Map" section, click the [Populate All Spawns] button to add Spheres and Markers, then click the [Scenery] button section to move the markers to the Scenery collection and tag them appropriately.
 
 # Acknowledgements
 
