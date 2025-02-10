@@ -294,8 +294,7 @@ class PopulateSpawns(bpy.types.Operator):
 class CommuteMarkers(bpy.types.Operator):
     bl_idname = "object.commute_markers"
     bl_label = "Add Markers to Scenery Palette"
-    bl_description = """
-Move markers to the 'Scenery' collection and tag them with the below path.
+    bl_description = """Move markers to the 'Scenery' collection and tag them with the below path.
 This is necessary in order to include them in the exported .scenario"""
     
     def execute(self, context):

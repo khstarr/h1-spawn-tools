@@ -42,7 +42,7 @@ class HowTo(Operator):
 
 
 class WM_HowTo(Operator):
-    bl_label = "Spawn Shop v0.8.8 - Guide"
+    bl_label = "Spawn Shop v0.8.9 - Guide"
     bl_idname = "wm.howto"
         
     def draw(self, context):
@@ -89,7 +89,7 @@ class WM_HowTo(Operator):
             row.label(text="  Add Spawn Spheres and Markers to all the PSLs. Sphere detail increases exponentially with each step, considerably")
             row = box.row()
             row.scale_y = 0.5
-            row.label(text="  increasing the time to calculate 'Randoms', so use caution adjusting it above 4.")
+            row.label(text="  affecting the time to calculate 'Randoms', so use caution adjusting it above 4.")
             row = box.row()
             row.scale_y = 0.5
 
@@ -103,10 +103,10 @@ class WM_HowTo(Operator):
             row.label(text="  With a pink shell and a bunch of Spawn Spheres, click [Generate Randoms], and then wait. The spheres will carve")
             row = box.row()
             row.scale_y = 0.5
-            row.label(text="  circles out of the shell, leaving an overlay depicting the random zones. Export this geometry as a .scenery and add")
+            row.label(text="  circles out of the shell, leaving an overlay depicting the random zones. Export this geometry as a JMS, convert")
             row = box.row()
             row.scale_y = 0.5
-            row.label(text="  it to your .scenario.")
+            row.label(text="  it to .scenery, and it to your .scenario.")
             row = box.row()
             row.scale_y = 0.5
             
@@ -207,7 +207,7 @@ class HowPopulate(Operator):
         row.label(text="  ")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  NOTE: Outer sphere radius is 60 feet, and represents the team influence distance. Inner sphere")
+        row.label(text="  NOTE: Outer sphere radius is 60 feet, which represents the team influence distance. Inner sphere")
         row = box.row()
         row.scale_y = 0.5
         row.label(text="  radius is 10 feet (100 units), representing guaranteed blocking distance.")
@@ -216,7 +216,7 @@ class HowPopulate(Operator):
         row.label(text="  ")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  Set the Sphere detail before populating (remember: each level makes exponentially more triangles).")
+        row.label(text="  Set the Sphere detail before populating (remember: each step makes exponentially more triangles).")
         row = box.row()
         row.scale_y = 0.5
         row.label(text="  You can adjust the color and opacity of Spheres and Markers before or after they've been created.")
@@ -307,10 +307,10 @@ class HowSimulate(Operator):
         row.label(text="  Halo's spawn engine. Click the [Generate Spartans] button (next to 'Auto-respawn') to add 2 \"players\" to")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  each team. If you have at least 4 Spawn Spheres attached to your PSLs, they will spawn into the map using")
+        row.label(text="  each team. If you have at least 4 Slayer-enabled Player Starting Locations, they will spawn into the map")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  the Halo 1 spawn engine.")
+        row.label(text="  using the Halo 1 spawn engine.")
         row = box.row()
         row.scale_y = 0.5
         row.label(text="  ")
@@ -334,7 +334,7 @@ class HowSimulate(Operator):
         row.label(text="  (force the spawn) as he moves closer (within 60 feet), but will block it within 10 feet. A red Spartan will")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  decrease the spawn's odds from 50 feet down to 20, where it's fully blocked. High opacity = higher odds")
+        row.label(text="  decrease the spawn's odds when within 50 feet, and fully block it at 20 feet. High opacity = higher odds")
         row = box.row()
         row.scale_y = 0.5
         row.label(text="  the spawn will be selected. This is a great way to visualize why certain spawns happen in known maps,")
@@ -352,16 +352,25 @@ class HowSimulate(Operator):
         row.label(text="  ")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  To see actual spawn selection in action, you can respawn the dead (hidden) players (with the 'Kill' button")
+        row.label(text="  To see actual spawn selection in action, you can respawn the dead (hidden) players (using the 'Kill' button")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  while 'Auto-respawn' is on, which counts down from 5 before respawning, or use the provided 🗘 buttons")
+        row.label(text="  while Auto-respawn [ ⭯ ] is enabled, which counts down from 5 before respawning, or use the individual")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  for instant respawn) and watch where they reappear. Use these features to get a full understanding of team")
+        row.label(text="  [🗘] buttons for instant respawn) and watch where they reappear. Enable the [Camera] button to make the")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  and enemy spawn influence while designing new, competitive 2v2 maps.")
+        row.label(text="  viewport jump to each Spartan as he respawns.")
+        row = box.row()
+        row.scale_y = 0.5
+        row.label(text="  ")
+        row = box.row()
+        row.scale_y = 0.5
+        row.label(text="  Use these features to get a full understanding of team and enemy spawn influence while designing new,")
+        row = box.row()
+        row.scale_y = 0.5
+        row.label(text="  competitive 2v2 maps.")
         row = box.row()
         row.scale_y = 0.5
 

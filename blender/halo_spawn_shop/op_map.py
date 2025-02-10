@@ -147,22 +147,8 @@ def register():
     for cls in classes:
         register_class(cls)
 
-    bpy.types.Scene.bsp_select = bpy.props.PointerProperty(
-        name = "",
-        description = "Please select a perfect manifold (STL Checked)\nsealed world. No holes (or it won't shell nicely)!",
-        type = bpy.types.Object
-    )
-    bpy.types.Scene.apply_solidify_modifier = bpy.props.BoolProperty(
-        name = "Apply",
-        description = "Apply the modifier when the 'Solidify' operation\ncompletes, or leave unchecked to tweak settings.",
-        default = True
-    )
-
 def unregister():
     from bpy.utils import unregister_class
     for cls in classes:
         unregister_class(cls)
-    
-    del bpy.types.Scene.bsp_select
-    del bpy.types.Scene.apply_solidify_modifier
 

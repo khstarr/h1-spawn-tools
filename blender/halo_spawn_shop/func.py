@@ -222,7 +222,6 @@ def MakeMat(matname,color):
 
         # Create a Principled BSDF shader node
         if mat.use_nodes:
-#            ntree = mat.node_tree
             bsdf = mat.node_tree.nodes.get("Principled BSDF", None)
             if bsdf is None:
                 bsdf = mat.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
@@ -427,46 +426,9 @@ def MakeNHEMarker(color):
     return marker
 
 
-#class Make_NHE_Marker(Operator): # not in use
-#    bl_idname = "object.spawn_marker_nhe"
-#    bl_label = "NHE Spawn Marker"
-#    bl_description = "Place a spawn scenery item at every Slayer spawn."
-#    
-#    def execute(self, context):
-
-#        print("Import from spawn_marker.blend...")
-#        
-#        # build file path:
-#        script_folder_path = path.dirname(path.dirname(__file__))
-#        p = bpy.utils.user_resource('SCRIPTS') + "\\addons\\halo_spawn_shop\\blend\\"
-#        f = "spawn_marker.blend"
-#        filepath = p+f
-#        
-#        with bpy.data.libraries.load(filepath) as (data_from, data_to):
-#            data_to.objects = ["spawn_marker_nhe"]
-#        
-##        marker = data_to.objects[0]
-##        bpy.context.collection.objects.link(marker)
-#        
-#        # LINK TO 'Spawn Shop'
-#        if(marker.users_collection):
-#            parent = marker.users_collection[0]
-#            parent.objects.unlink(marker)
-#        SpawnShopCollection.objects.link(marker)
-#        
-#        marker.select_set(True)
-#        
-#        for mat in marker.data.materials:
-#            if mat.name not in bpy.data.materials:
-#                bpy.data.materials.append(mat)
-#        
-#        return {"FINISHED"}
-
-
     
 classes = (
     WM_ShowError,
-#    Make_NHE_Marker,
     CountSpawns,
 )
 
@@ -474,54 +436,8 @@ def register():
     from bpy.utils import register_class
     for cls in classes:
         register_class(cls)
-        
-#    from bpy.utils import register_class
-#    register_class(WM_ShowError)
-#    register_class(Make_NHE_Marker)
-        
-    bpy.types.Scene.sphere_detail_outer = bpy.props.IntProperty( # need another option for inner sphere levels
-        name = "",
-        description = "Set the number of subdivisions to perform\nwhen creating the outer spheres.\n\nRange: 3-6\nDefault: 4\n\n4 really is enough.",
-        default = 4,
-        min = 3,
-        max = 6
-    )
-        
-    bpy.types.Scene.sphere_detail_inner = bpy.props.IntProperty( # need another option for inner sphere levels
-        name = "",
-        description = "Set the number of subdivisions to\nperform when creating the spheres.\n\nRange: 3-6\nDefault: 4\n\n4 really is enough.",
-        default = 4,
-        min = 3,
-        max = 6
-    )
-    
-    bpy.types.Scene.sphere_opacity = bpy.props.FloatProperty(
-        name = "",
-        description = "Range: 0.2-0.8\nDefault: 0.4\n\nSet the opacity for spawn spheres.",
-        default = 0.4,
-        min = 0.2,
-        max = 0.8,
-        update = update_sphere_opacity
-    )
-    bpy.types.Scene.marker_opacity = bpy.props.FloatProperty(
-        name = "",
-        description = "Range: 0.4-1.0\nDefault: 1.0\n\nSet the opacity for spawn markers.",
-        default = 1.0,
-        min = 0.4,
-        max = 1.0,
-        update = update_marker_opacity
-    )
-
 
 def unregister():
     from bpy.utils import unregister_class
     for cls in classes:
         unregister_class(cls)
-#    from bpy.utils import unregister_class
-#    unregister_class(WM_ShowError)
-#    unregister_class(Make_NHE_Marker)
-    
-    del bpy.types.Scene.sphere_detail_outer
-    del bpy.types.Scene.sphere_detail_inner
-    del bpy.types.Scene.sphere_opacity
-    del bpy.types.Scene.marker_opacity

@@ -222,28 +222,8 @@ def register():
     from bpy.utils import register_class
     for cls in classes:
         register_class(cls)
-    
-    bpy.types.Scene.apply_randoms_modifier = bpy.props.BoolProperty(
-        name = "Apply",
-        description = "Apply the modifier when the boolean operation\ncompletes, or leave unchecked to tweak settings.",
-        default = True
-    )
-    bpy.types.Scene.shell_select = bpy.props.PointerProperty(
-        name = "",
-        description = "Select the shelled BSP created in Step 1",
-        type = bpy.types.Object
-    )
-    bpy.types.Scene.spheres_select = bpy.props.PointerProperty(
-        name = "Spheres Collection",
-        description = "Select the collection of Spheres to cut from the shell.",
-        type = bpy.types.Collection
-    )
 
 def unregister():
     from bpy.utils import unregister_class
     for cls in classes:
         unregister_class(cls)
-        
-    del bpy.types.Scene.apply_randoms_modifier
-    del bpy.types.Scene.spheres_select
-    del bpy.types.Scene.shell_select

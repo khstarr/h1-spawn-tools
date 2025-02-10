@@ -193,7 +193,7 @@ def select_spawn_point(Player):
         bpy.ops.object.select_all(action='DESELECT')
         Player.select_set(True)
         
-        if True: # make this a user toggle from panel
+        if bpy.context.scene.auto_view: # make this a user toggle from panel
             spartan_shoulders(p)
             
             
@@ -722,13 +722,9 @@ def TrackingLoop(PSLs, Spartans):
         
         if len(Spartans) > 0:
             
-#            markermat = None
-#            for SM in SpawnMarkers.objects:
-#                markermat = SM.data.materials[0]
-#                if markermat:
-#                    break
+            perspective = bpy.context.scene.perspective_enum.perspective
 
-            # LOOP THROUGH ALL Player Starting Locations:
+            # LOOP THROUGH ALL PROVIDED (slayer-enabled) Player Starting Locations:
             for n, PSL in PSLs.items():
                 
                 # if this PSL has spheres or markers attached:
@@ -748,7 +744,7 @@ def TrackingLoop(PSLs, Spartans):
                     friendly_bonus = 0.0
                     # Future: if this is "Both", we'll need another set of spheres attached to each PSL,
                     # much like the markers, but team color will need to be provided in the name (I think?)
-                    perspective = bpy.context.scene.perspective_enum.perspective
+                    
                     # LOOP THROUGH ALL SPARTANS
                     for teamplayer, Spartan in Spartans.items():
                         
@@ -815,7 +811,6 @@ def TrackingLoop(PSLs, Spartans):
             return bpy.context.scene.spawn_refresh_rate # tells the timer how quickly to run again
         else:
             print("No spartans selected.")
-
     
     else:
         print("Stopping");
@@ -835,100 +830,8 @@ def register():
     for cls in classes:
         register_class(cls)
 
-    # player selection
-    bpy.types.Scene.player_1_select = bpy.props.PointerProperty(
-        name = "",
-        description = "Select Player 1 (Blue Team)",
-        type = bpy.types.Object,
-        update = update_tracking
-    )
-    
-    bpy.types.Scene.player_2_select = bpy.props.PointerProperty(
-        name = "",
-        description = "Select Player 2 (Blue Team)",
-        type = bpy.types.Object,
-        update = update_tracking
-    )
-    
-    bpy.types.Scene.player_3_select = bpy.props.PointerProperty(
-        name = "",
-        description = "Select Player 3 (Red Team)",
-        type = bpy.types.Object,
-        update = update_tracking
-    )
-    
-    bpy.types.Scene.player_4_select = bpy.props.PointerProperty(
-        name = "",
-        description = "Select Player 4 (Red Team)",
-        type = bpy.types.Object,
-        update = update_tracking
-    )
-    
-    # player respawn time remaining integers
-    bpy.types.Scene.sec_p1 = bpy.props.IntProperty(
-        name = "",
-        description = "Respawn time remaining",
-        default = 0,
-        min = 0,
-        max = 10
-    )
-    bpy.types.Scene.sec_p2 = bpy.props.IntProperty(
-        name = "",
-        description = "Respawn time remaining",
-        default = 0,
-        min = 0,
-        max = 10
-    )
-    bpy.types.Scene.sec_p3 = bpy.props.IntProperty(
-        name = "",
-        description = "Respawn time remaining",
-        default = 0,
-        min = 0,
-        max = 10
-    )
-    bpy.types.Scene.sec_p4 = bpy.props.IntProperty(
-        name = "",
-        description = "Respawn time remaining",
-        default = 0,
-        min = 0,
-        max = 10
-    )
-    
-    # simulation options
-    bpy.types.Scene.auto_respawn = bpy.props.BoolProperty(
-        name = "Auto-respawn",
-        description = "Countdown from 5 and then automatically respawn the dead player.",
-        default = True
-    )
-    bpy.types.Scene.spawn_refresh_rate = bpy.props.FloatProperty(
-        name = "",
-        description = "Range: 0.01-1.0\nDefault: 0.05\n\nSet the spawn analysis refresh rate.\nLower value = faster updates, higher CPU tax.",
-        default = 0.05,
-        min = 0.01,
-        max = 1
-    )
-    bpy.types.Scene.prediction = bpy.props.BoolProperty(
-        name = "Real Time Tracking",
-        description = "Show and hide spawn markers and influence spheres\nbased on the locations of the selected Spartan objects.",
-        default = False,
-        update = update_prediction_bool
-    )
-
-
 def unregister():
     # keeping this here in case we add a class to this script
     from bpy.utils import unregister_class
     for cls in classes:
         unregister_class(cls)
-        
-    del bpy.types.Scene.player_1_select
-    del bpy.types.Scene.player_2_select
-    del bpy.types.Scene.player_3_select
-    del bpy.types.Scene.player_4_select
-    del bpy.types.Scene.auto_respawn
-    del bpy.types.Scene.spawn_refresh_rate
-    del bpy.types.Scene.prediction
-    del bpy.types.Scene.sec_p1
-    del bpy.types.Scene.sec_p2
-    del bpy.types.Scene.sec_p3
-    del bpy.types.Scene.sec_p4
