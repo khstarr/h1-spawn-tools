@@ -96,7 +96,7 @@ def RespawnPlayer(player):
 
     
 
-def select_spawn_point(Player):
+def select_spawn_point(Player, move_viewport = True):
     
     PSLs = {}
     PSL = bpy.data.collections.get("Player Starting Locations") 
@@ -190,10 +190,10 @@ def select_spawn_point(Player):
         Player.location = loc
         Player.rotation_euler = rot
         Player.hide_set(False)
-        bpy.ops.object.select_all(action='DESELECT')
+#        bpy.ops.object.select_all(action='DESELECT')
         Player.select_set(True)
         
-        if bpy.context.scene.auto_view: # make this a user toggle from panel
+        if bpy.context.scene.auto_view and move_viewport: # make this a user toggle from panel
             spartan_shoulders(p)
             
             
@@ -239,7 +239,7 @@ def spartan_shoulders(p):
         bpy.ops.view3d.view_selected(use_all_regions=False)
 
 
-# enums - look at spartan's chest (must happen after view_selected)
+# enums - move viewport to spartan's chest height (must happen after view_selected)
         player_chest = player.location.copy() + mathutils.Vector((0,0,50))
         bpy.context.space_data.region_3d.view_location = player_chest
         
@@ -250,13 +250,12 @@ def spartan_shoulders(p):
         # get viewport orientation
         view_euler = bpy.context.space_data.region_3d.view_rotation.to_euler()
         
-        
         # get and fix viewport X angle
         view_x_rad = view_euler.x
         view_x_deg = math.degrees(view_x_rad)
 #        print("View X Degrees:",view_x_deg)
         if view_x_deg >= 0:
-            pitch = view_x_deg - 72
+            pitch = view_x_deg - 72 
             direction = 'ORBITUP'
         elif view_x_deg < 0:
             pitch = 72 - view_x_deg
@@ -264,11 +263,10 @@ def spartan_shoulders(p):
 #        print(direction,pitch)
         bpy.ops.view3d.view_orbit(angle=math.radians(pitch), type=direction)
         
-        
         # get and fix viewport Z angle
         view_z_rad = view_euler.z
         view_z_deg = math.degrees(view_z_rad)
-        spin = (view_z_deg - spawn_z) + 90
+        spin = (view_z_deg - spawn_z) + 90 # not sure why the 90 is needed
 #        print('Spin...\nView Z: ',view_z_deg,'\nSpawnZ: ',spawn_z,'\nFinal:  ',spin)
         # orbit the viewport ('ORBITLEFT' subtracts the supplied angle)
         bpy.ops.view3d.view_orbit(angle=math.radians(spin), type='ORBITLEFT')
@@ -521,6 +519,8 @@ the Spheres populated and linked to said spawns)."""
         
         bpy.context.scene.player_1_select = P1
 
+        bpy.ops.object.select_all(action='DESELECT')
+        
         select_spawn_point(P1)
         
         team_size = 2
@@ -551,7 +551,10 @@ the Spheres populated and linked to said spawns)."""
                     bpy.context.scene.player_4_select = spartan
                 
                 spartan.data.materials[0] = GetSpartanMaterial(team+" Team")
-                select_spawn_point(spartan)#,SpawnSpheres,Spartans):
+                select_spawn_point(spartan, False)#,SpawnSpheres,Spartans):
+        
+        
+        bpy.ops.view3d.view_selected(use_all_regions=False)
         
         return {"FINISHED"}
 

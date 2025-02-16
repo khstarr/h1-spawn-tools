@@ -42,7 +42,7 @@ class HowTo(Operator):
 
 
 class WM_HowTo(Operator):
-    bl_label = "Spawn Shop v0.8.9 - Guide"
+    bl_label = "Spawn Shop v0.9.1 - Guide"
     bl_idname = "wm.howto"
         
     def draw(self, context):
@@ -304,15 +304,15 @@ class HowSimulate(Operator):
         row.label(text="  surfaces depicting the random zones. The last thing you'll need is a group of 4 Spartans to demonstrate")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  Halo's spawn engine. Click the [Generate Spartans] button (next to 'Auto-respawn') to add 2 \"players\" to")
+        row.label(text="  Halo's spawn engine. Click the [+2v2] button to add 2 \"players\" to each team. If you have at least 4")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  each team. If you have at least 4 Slayer-enabled Player Starting Locations, they will spawn into the map")
+        row.label(text="  Slayer-enabled Player Starting Locations, they will spawn into the map using the Halo 1 spawn engine.")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  using the Halo 1 spawn engine.")
-        row = box.row()
-        row.scale_y = 0.5
+#        row.label(text="  ")
+#        row = box.row()
+#        row.scale_y = 0.5
         row.label(text="  ")
         row = box.row()
         row.scale_y = 0.5
@@ -325,7 +325,7 @@ class HowSimulate(Operator):
         row.label(text="  Enable 'Real Time Prediction', manually hide P2 and P4 (or disable 'Auto-respawn' and 'kill' them with the")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  provided ghost buttons), then move P1 and P3 around the map to see how the spheres and markers fade")
+        row.label(text="  provided ghost buttons), then move P1 and P3 around the map to see how the Spheres and Markers fade")
         row = box.row()
         row.scale_y = 0.5
         row.label(text="  in and out. If 'Perspective' is set to 'Blue', a blue Spartan will increase a spawn point's odds of selection")
@@ -334,7 +334,7 @@ class HowSimulate(Operator):
         row.label(text="  (force the spawn) as he moves closer (within 60 feet), but will block it within 10 feet. A red Spartan will")
         row = box.row()
         row.scale_y = 0.5
-        row.label(text="  decrease the spawn's odds when within 50 feet, and fully block it at 20 feet. High opacity = higher odds")
+        row.label(text="  decrease the spawn's odds when within 50 feet, and fully block it at 20 feet. Higher opacity = higher odds")
         row = box.row()
         row.scale_y = 0.5
         row.label(text="  the spawn will be selected. This is a great way to visualize why certain spawns happen in known maps,")

@@ -32,7 +32,7 @@ from .op_sim import update_tracking, update_prediction_bool
 
 class VIEW_3D_PT_halo_spawn_shop(Panel):
         
-    bl_label = "Spawn Shop    v0.8.9"
+    bl_label = "Spawn Shop    v0.9.1"
     bl_idname = "OBJECT_PT_SpawnShop"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI" # Called with N key
@@ -218,17 +218,17 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
             
             row = panel.row()
             
-            split = panel.split(factor=0.75)
+            split = panel.split(factor=0.25)
             left = split.column()
             right = split.column()
-            three = left.split(factor=0.33)
-            l = three.column()
+            three = right.split(factor=0.67)
+#            l = three.column()
             m = three.column()
             r = three.column()
 #            l.label(text="Auto:")
-            l.prop(context.scene, "auto_respawn", text="", icon="RECOVER_LAST") # RECOVER_LAST FILE_REFRESH
-            m.prop(context.scene, "auto_view", text="", icon="VIEW_CAMERA_UNSELECTED")
-            right.operator("object.generate_spartans", text="+", icon="COMMUNITY")
+            left.prop(context.scene, "auto_view", text="", icon="VIEW_CAMERA_UNSELECTED")
+            m.operator("object.generate_spartans", text="+2v2  ", icon="COMMUNITY")
+            r.prop(context.scene, "auto_respawn", text="", icon="RECOVER_LAST") # RECOVER_LAST FILE_REFRESH
 
             row = panel.row(align=True)
             row.label(text="", icon="SEQUENCE_COLOR_05")
