@@ -176,13 +176,29 @@ class GenerateRandomsConfirm(Operator):
         details = str(self.sphere_detail_outer)+"."+str(self.sphere_detail_inner)
         quality = bpy.context.scene.boolean_solver_enum.boolean_solver
         
-        Spheres = bpy.context.scene.spheres_select
         Shell = bpy.context.scene.shell_select
+        SpheresCollection = bpy.context.scene.spheres_select
         RandomsCollection = bpy.data.collections.get("Randoms")
-                
-        if Shell and Spheres:
+        
+        
+        
+        # user may have updated script, so they will have a BSP.shell, but not the
+        # Randoms collection. this should fix (unless they also don't have Spawn Shop):
+        if not RandomsCollection:
+            SpawnShopCollection = bpy.data.collections.get("Spawn Shop")
+            if not SpawnShopCollection:
+                bpy.ops.wm.show_error('INVOKE_DEFAULT',message="'Spawn Shop' collection missing! Please start over.")
+                return {'FINISHED'}
+            
+            RandomsCollection = SpawnShopCollection.children.get("Randoms")
+    
+            if not RandomsCollection:
+                RandomsCollection = bpy.data.collections.new('Randoms')
+                SpawnShopCollection.children.link(RandomsCollection)
+            
+        if Shell and SpheresCollection and RandomsCollection:
             print("Found Shell and Spheres!")
-            bpy.ops.object.select_all(action='DESELECT')           
+            bpy.ops.object.select_all(action='DESELECT') 
 
             # create a clone
             clone = Shell.copy()
@@ -196,7 +212,7 @@ class GenerateRandomsConfirm(Operator):
             boo = clone.modifiers.new("GenRand","BOOLEAN")
             boo.solver = quality
             boo.operand_type = 'COLLECTION'
-            boo.collection = Spheres
+            boo.collection = SpheresCollection
             
             # apply if user desires
             if bpy.context.scene.apply_randoms_modifier:

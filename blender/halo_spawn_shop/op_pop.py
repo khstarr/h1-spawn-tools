@@ -303,6 +303,12 @@ This is necessary in order to include them in the exported .scenario"""
         SceneryCollection = bpy.data.collections.get("Scenery")
         MarkersCollection = bpy.data.collections.get("Markers")
         
+        if not SceneryCollection:
+            SceneryCollection = bpy.data.collections.new("Scenery")
+            bpy.context.scene.collection.children.link(SceneryCollection)
+        
+        if not MarkersCollection:
+            self.report({'ERROR'},"Could not find 'Spawn Shop' > 'Markers' collection. Please populate the map first.")
         
         if SceneryCollection and MarkersCollection:
             for Marker in MarkersCollection.objects:

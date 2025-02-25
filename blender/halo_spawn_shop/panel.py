@@ -32,7 +32,7 @@ from .op_sim import update_tracking, update_prediction_bool
 
 class VIEW_3D_PT_halo_spawn_shop(Panel):
         
-    bl_label = "Spawn Shop    v0.9.1"
+    bl_label = "Spawn Shop    v0.9.3"
     bl_idname = "OBJECT_PT_SpawnShop"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI" # Called with N key
