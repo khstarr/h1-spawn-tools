@@ -42,7 +42,7 @@ class HowTo(Operator):
 
 
 class WM_HowTo(Operator):
-    bl_label = "Spawn Shop v0.9.3 - Guide"
+    bl_label = "Spawn Shop v0.9.4 - Guide"
     bl_idname = "wm.howto"
         
     def draw(self, context):

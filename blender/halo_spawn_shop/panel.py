@@ -30,9 +30,14 @@ from bpy.types import Panel
 from .func import update_sphere_color, update_sphere_opacity, update_marker_color, update_marker_opacity
 from .op_sim import update_tracking, update_prediction_bool
 
+def exists(icon_name):
+    icons = bpy.types.UILayout.bl_rna.functions["prop"].parameters["icon"].enum_items.keys()
+    return icon_name in icons
+
+
 class VIEW_3D_PT_halo_spawn_shop(Panel):
         
-    bl_label = "Spawn Shop    v0.9.3"
+    bl_label = "Spawn Shop    v0.9.4"
     bl_idname = "OBJECT_PT_SpawnShop"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI" # Called with N key
@@ -231,7 +236,7 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
             r.prop(context.scene, "auto_respawn", text="", icon="RECOVER_LAST") # RECOVER_LAST FILE_REFRESH
 
             row = panel.row(align=True)
-            row.label(text="", icon="SEQUENCE_COLOR_05")
+            row.label(text="", icon="STRIP_COLOR_05" if exists("STRIP_COLOR_05") else "EVENT_B")
 #            row.label(text="", icon="EVENT_ONEKEY")
             row.operator("object.view_spartan", text="", icon="EVENT_ONEKEY").player = 1
             row.prop(context.scene, "player_1_select", text="", icon="USER")
@@ -243,7 +248,7 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
                 row.operator("object.spawn_spartan", text="", icon=self.countdowns[context.scene.sec_p1]).spawner = 1 # FILE_REFRESH
                 
             row = panel.row(align=True)
-            row.label(text="", icon="SEQUENCE_COLOR_05")
+            row.label(text="", icon="STRIP_COLOR_05" if exists("STRIP_COLOR_05") else "EVENT_B")
 #            row.label(text="", icon="EVENT_TWOKEY")
             row.operator("object.view_spartan", text="", icon="EVENT_TWOKEY").player = 2
             row.prop(context.scene, "player_2_select", text="", icon="USER")
@@ -255,7 +260,7 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
                 row.operator("object.spawn_spartan", text="", icon=self.countdowns[context.scene.sec_p2]).spawner = 2 # FILE_REFRESH
 
             row = panel.row(align=True)
-            row.label(text="", icon="SEQUENCE_COLOR_01")
+            row.label(text="", icon="STRIP_COLOR_01" if exists("STRIP_COLOR_01") else "EVENT_R")
 #            row.label(text="", icon="EVENT_THREEKEY")
             row.operator("object.view_spartan", text="", icon="EVENT_THREEKEY").player = 3
             row.prop(context.scene, "player_3_select", text="", icon="USER")
@@ -267,7 +272,7 @@ class VIEW_3D_PT_halo_spawn_shop(Panel):
                 row.operator("object.spawn_spartan", text="", icon=self.countdowns[context.scene.sec_p3]).spawner = 3 # FILE_REFRESH
                 
             row = panel.row(align=True)
-            row.label(text="", icon="SEQUENCE_COLOR_01")
+            row.label(text="", icon="STRIP_COLOR_01" if exists("STRIP_COLOR_01") else "EVENT_R")
 #            row.label(text="", icon="EVENT_FOURKEY")
             row.operator("object.view_spartan", text="", icon="EVENT_FOURKEY").player = 4
             row.prop(context.scene, "player_4_select", text="", icon="USER")
